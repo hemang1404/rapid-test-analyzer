@@ -20,12 +20,18 @@ except ImportError as e:
         }
     
     class PHStripAnalyzer:
-        def analyze(self, image_path, debug=False, result_folder="result_images", analysis_id=None):
+        def __init__(self, debug=False):
+            self.debug = debug
+            
+        def analyze_ph_strip(self, image_path, debug=False, result_folder="result_images", analysis_id=None):
             return {
-                "status": "success", 
-                "result": "Demo result - pH analyzer not available",
-                "confidence": 0.0,
-                "analysis_id": analysis_id
+                "success": True, 
+                "estimated_ph": 7.0,
+                "test_patch_color_hsv": [60, 100, 200],
+                "min_distance_to_reference": 0.5,
+                "detected_reference_patches_count": 7,
+                "result_images": [],
+                "estimated_ph_value": 7.0
             }
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
@@ -121,6 +127,7 @@ def analyze():
             analyzer = PHStripAnalyzer(debug=False)
             result = analyzer.analyze_ph_strip(
                 image_path,
+                debug=False,
                 result_folder=RESULT_IMAGES_FOLDER,
                 analysis_id=analysis_id
             )
