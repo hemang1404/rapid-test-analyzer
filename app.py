@@ -7,10 +7,10 @@ import logging
 # Wrap imports in try-catch for better error handling
 try:
     from fob_analyzer import analyze_fob
-    from ph_strip_analyzer import PHStripAnalyzer
+    print("✅ FOB analyzer imported successfully")
 except ImportError as e:
-    logging.error(f"Import error: {e}")
-    # Create dummy functions with matching signatures for deployment testing
+    print(f"❌ FOB analyzer import failed: {e}")
+    # Create dummy function for FOB
     def analyze_fob(image_path, templates_dir="templates", debug=False, result_folder="result_images", analysis_id=None):
         return {
             "status": "success",
@@ -18,12 +18,21 @@ except ImportError as e:
             "confidence": 0.0,
             "analysis_id": analysis_id
         }
-    
+
+try:
+    from ph_strip_analyzer import PHStripAnalyzer
+    print("✅ pH Strip analyzer imported successfully")
+    REAL_PH_ANALYZER = True
+except ImportError as e:
+    print(f"❌ pH Strip analyzer import failed: {e}")
+    REAL_PH_ANALYZER = False
+    # Create dummy class for pH
     class PHStripAnalyzer:
         def __init__(self, debug=False):
             self.debug = debug
             
         def analyze_ph_strip(self, image_path, debug=False, result_folder="result_images", analysis_id=None):
+            print("⚠️ Using dummy pH analyzer - real analyzer not available")
             return {
                 "success": True, 
                 "estimated_ph": 7.0,
@@ -124,17 +133,25 @@ def analyze():
             }
             
         elif test_type == "ph":
+            logger.info(f"pH analysis starting. Real analyzer available: {REAL_PH_ANALYZER}")
             analyzer = PHStripAnalyzer(debug=False)
+            logger.info(f"PHStripAnalyzer created successfully")
+            
             result = analyzer.analyze_ph_strip(
                 image_path,
                 debug=False,
                 result_folder=RESULT_IMAGES_FOLDER,
                 analysis_id=analysis_id
             )
+            
+            logger.info(f"pH analysis result: {result}")
+            
             if not result["success"]:
-                return jsonify({"error": result["error"]}), 500
+                logger.error(f"pH analysis failed: {result.get('error', 'Unknown error')}")
+                return jsonify({"error": result.get("error", "pH analysis failed")}), 500
 
             ph_value = result["estimated_ph"]
+            logger.info(f"Estimated pH value: {ph_value}")
             # Add pH interpretation
             if ph_value < 6.0:
                 interpretation = "Acidic - may indicate acidosis or dietary factors"

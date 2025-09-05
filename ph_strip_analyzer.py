@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 from sklearn.neighbors import KNeighborsRegressor  # Changed from NearestNeighbors
 from typing import Optional, List, Dict, Any
 import os
