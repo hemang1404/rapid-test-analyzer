@@ -10,12 +10,23 @@ try:
     from ph_strip_analyzer import PHStripAnalyzer
 except ImportError as e:
     logging.error(f"Import error: {e}")
-    # Create dummy functions for deployment testing
-    def analyze_fob(image_path):
-        return {"result": "Demo result - FOB analyzer not available", "success": True}
+    # Create dummy functions with matching signatures for deployment testing
+    def analyze_fob(image_path, templates_dir="templates", debug=False, result_folder="result_images", analysis_id=None):
+        return {
+            "status": "success",
+            "result": "Demo result - FOB analyzer not available",
+            "confidence": 0.0,
+            "analysis_id": analysis_id
+        }
+    
     class PHStripAnalyzer:
-        def analyze(self, image_path):
-            return {"result": "Demo result - pH analyzer not available", "success": True}
+        def analyze(self, image_path, debug=False, result_folder="result_images", analysis_id=None):
+            return {
+                "status": "success", 
+                "result": "Demo result - pH analyzer not available",
+                "confidence": 0.0,
+                "analysis_id": analysis_id
+            }
 
 app = Flask(__name__, template_folder='frontend', static_folder='frontend')
 UPLOAD_FOLDER = "uploads"
