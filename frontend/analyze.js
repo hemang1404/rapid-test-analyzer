@@ -341,8 +341,8 @@
         form.append('image', file);
         form.append('test_type', selectedTest);
 
-        // default endpoint — change this if your backend is hosted elsewhere
-        const ENDPOINT = 'http://127.0.0.1:5000/analyze';
+        // Use relative URL for same-origin requests (works in both dev and production)
+        const ENDPOINT = '/analyze';
 
         try{
             clearInterval(progressInterval); // Clear progress messages
