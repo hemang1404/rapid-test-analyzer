@@ -181,7 +181,7 @@ document.getElementById('printReportBtn').addEventListener('click', () => {
 });
 
 document.getElementById('newAnalysisBtn').addEventListener('click', ()=>{
-    window.location.href = 'index.html';
+    window.location.href = '/';
 });
 
 function escapeHtml(s){

@@ -1,68 +1,325 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FOB & pH Strip Analyzer</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapid Test Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .glass {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Focus styles for accessibility */
+        #previewBox:focus {
+            outline: 2px solid #10b981;
+            outline-offset: 2px;
+        }
+        
+        button:focus {
+            outline: 2px solid #3b82f6;
+            outline-offset: 2px;
+        }
+        
+        /* Smooth transitions for better UX */
+        .transition-all {
+            transition: all 0.3s ease;
+        }
+        
+        /* Enhanced glass morphism */
+        .glass:hover {
+            backdrop-filter: blur(15px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        /* Subtle animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        /* Pulse effect for important elements */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(16, 185, 129, 0.4); }
+            50% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.6); }
+        }
+        
+        .pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+        
+        /* Improved loading state */
+        .loading-shimmer {
+            background: linear-gradient(90deg, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+    </style>
 </head>
-<body>
-  <h1>Rapid Test Strip Analyzer</h1>
-  <p>Upload your test strip image</p>
-
-  <div class="container">
-    <div id="error-message" class="error-message" role="alert"></div>
-    <div id="success-message" class="success-message" role="alert"></div>
+<body class="min-h-screen bg-gradient-to-br from-[#07361f] via-[#0b4d2f] to-[#064026] text-white antialiased">
     
-    <!-- Results Section -->
-    <div id="results-section" class="results-section" style="display: none;">
-      <div class="results-header">
-        <h3>Analysis Results</h3>
-        <button onclick="clearResults()" class="clear-results-btn">×</button>
-      </div>
-      <div id="results-content" class="results-content"></div>
-      <div class="results-actions">
-        <button onclick="resetForNewTest()" class="reset-new-test-btn">🔄 Reset & Start New Test</button>
-      </div>
-    </div>
+    <!-- Global Status Messages Container (Always visible) -->
+    <div id="globalStatusMessages" class="fixed top-4 right-4 z-50 space-y-2 max-w-sm"></div>
     
-    <div class="example-images">
-      <img src="ph_example.jpg" alt="Example pH Strip showing color comparison chart" />
-      <img src="fob_example.jpg" alt="Example FOB Strip showing test result indicators" />
+    <!-- Hamburger Menu Button (Top Left) -->
+    <div class="fixed top-4 left-4 z-50">
+        <button id="hamburgerBtn" class="p-3 rounded-full glass hover:bg-white/10 transition-colors w-12 h-12 flex items-center justify-center">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+        </button>
+        
+        <!-- Hamburger Dropdown Menu -->
+        <div id="hamburgerMenu" class="absolute top-full left-0 mt-2 w-48 glass rounded-lg shadow-xl hidden">
+            <div class="p-2">
+                <button class="w-full text-left px-4 py-2 rounded-md hover:bg-white/10 transition-colors" data-feature="login">
+                    Login
+                </button>
+                <!-- Future: History option will be added here when logged in -->
+            </div>
+        </div>
     </div>
 
-    <label for="test-type">Select Test Type:</label>
-    <select id="test-type">
-      <option value="ph">Vaginal pH Test</option>
-      <option value="fob">FOB Test</option>
-    </select>
+    <!-- Main Content -->
+    <main class="flex items-center justify-center min-h-screen p-6">
+        <div class="text-center">
+            
+            <!-- Landing Page - Enhanced with more content -->
+            <section id="landingSection">
+                <h1 class="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent">
+                    Rapid Test Analyzer
+                </h1>
+                <p class="text-2xl md:text-3xl text-white/90 mb-8 font-light">
+                    Advanced AI-powered medical test analysis
+                </p>
+                <p class="text-lg md:text-xl text-white/70 mb-12 max-w-2xl mx-auto leading-relaxed">
+                    Get instant, accurate results for your medical tests using cutting-edge computer vision and machine learning technology. Upload your test images and receive professional-grade analysis in seconds.
+                </p>
+                
+                <!-- Feature highlights -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-4xl mx-auto">
+                    <div class="glass rounded-xl p-6 text-center hover:bg-white/5 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl group">
+                        <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-500/30 transition-colors">
+                            <svg class="w-6 h-6 text-blue-400 group-hover:text-blue-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-2 group-hover:text-green-300 transition-colors">Accurate Results</h3>
+                        <p class="text-sm text-white/70 group-hover:text-white/90 transition-colors">AI-powered analysis with medical-grade precision</p>
+                    </div>
+                    <div class="glass rounded-xl p-6 text-center hover:bg-white/5 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl group">
+                        <div class="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-green-500/30 transition-colors">
+                            <svg class="w-6 h-6 text-green-400 group-hover:text-green-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-2 group-hover:text-green-300 transition-colors">Fast Processing</h3>
+                        <p class="text-sm text-white/70 group-hover:text-white/90 transition-colors">Get results in seconds, not minutes</p>
+                    </div>
+                    <div class="glass rounded-xl p-6 text-center hover:bg-white/5 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl group">
+                        <div class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-500/30 transition-colors">
+                            <svg class="w-6 h-6 text-purple-400 group-hover:text-purple-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-2 group-hover:text-green-300 transition-colors">Medical Reports</h3>
+                        <p class="text-sm text-white/70 group-hover:text-white/90 transition-colors">Professional diagnostic interpretations</p>
+                    </div>
+                </div>
+                
+                <button id="startBtn" class="px-16 py-5 rounded-2xl bg-gradient-to-r from-[#0f9d58] to-[#138a4a] shadow-2xl text-xl font-semibold hover:scale-[1.02] hover:shadow-3xl transition-all duration-300 transform active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-green-500/50 group">
+                    <span class="flex items-center gap-3">
+                        <svg class="w-6 h-6 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                        Start Diagnosis
+                    </span>
+                </button>
+                
+                <!-- Supported tests -->
+                <div class="mt-12 text-center">
+                    <p class="text-white/60 mb-4">Supported Tests:</p>
+                    <div class="flex justify-center gap-4 flex-wrap">
+                        <span class="px-3 py-1 bg-white/10 rounded-full text-sm hover:bg-white/20 transition-colors cursor-default border border-white/20">pH Analysis</span>
+                        <span class="px-3 py-1 bg-white/10 rounded-full text-sm hover:bg-white/20 transition-colors cursor-default border border-white/20">FOB Detection</span>
+                        <span class="px-3 py-1 bg-white/10 rounded-full text-sm opacity-60 cursor-default border border-white/10 relative">
+                            Urinalysis (Coming Soon)
+                            <span class="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full animate-pulse"></span>
+                        </span>
+                    </div>
+                </div>
+            </section>
 
-    <div class="upload-area" id="upload-area" tabindex="0" role="button" aria-label="Upload image area - click or drag to upload">
-      <p>Click or drag an image here to upload (Max 5MB, JPG/PNG)</p>
-      <input type="file" id="file-input" accept="image/jpeg,image/png,image/jpg" hidden aria-label="File input" />
-    </div>
+            <!-- Test Selection Modal (Separate from hamburger) -->
+            <div id="testModal" class="fixed inset-0 z-30 hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+                <div class="w-full max-w-md p-6 rounded-2xl glass shadow-2xl transform transition-all duration-300 scale-95 opacity-0" id="testModalContent">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent">Choose Your Test</h3>
+                        <button id="closeTestModal" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-200">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 gap-4">
+                        <button class="group p-4 rounded-xl bg-white/5 hover:bg-gradient-to-r hover:from-blue-500/20 hover:to-blue-600/20 border border-white/10 hover:border-blue-400/50 transition-all duration-300 text-left" data-test="ph">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center group-hover:bg-blue-500/30 transition-colors">
+                                    <span class="text-lg font-bold">pH</span>
+                                </div>
+                                <div>
+                                    <div class="font-semibold text-lg">pH Test</div>
+                                    <div class="text-sm text-white/70">Analyze pH strip levels</div>
+                                </div>
+                            </div>
+                        </button>
+                        <button class="group p-4 rounded-xl bg-white/5 hover:bg-gradient-to-r hover:from-red-500/20 hover:to-red-600/20 border border-white/10 hover:border-red-400/50 transition-all duration-300 text-left" data-test="fob">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center group-hover:bg-red-500/30 transition-colors">
+                                    <span class="text-sm font-bold">FOB</span>
+                                </div>
+                                <div>
+                                    <div class="font-semibold text-lg">FOB Test</div>
+                                    <div class="text-sm text-white/70">Fecal occult blood detection</div>
+                                </div>
+                            </div>
+                        </button>
+                        <button class="group p-4 rounded-xl bg-white/5 hover:bg-gradient-to-r hover:from-yellow-500/20 hover:to-yellow-600/20 border border-white/10 hover:border-yellow-400/50 transition-all duration-300 text-left relative" data-test="urinalysis">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center group-hover:bg-yellow-500/30 transition-colors">
+                                    <span class="text-xs font-bold">URI</span>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="font-semibold text-lg flex items-center gap-2">
+                                        Urinalysis
+                                        <span class="px-2 py-0.5 bg-orange-500/20 text-orange-300 text-xs rounded-full border border-orange-400/30">Coming Soon</span>
+                                    </div>
+                                    <div class="text-sm text-white/70">Comprehensive urine analysis</div>
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+                    
+                    <div class="mt-6 text-center">
+                        <p class="text-sm text-white/60">Select a test type to begin your analysis</p>
+                    </div>
+                </div>
+            </div>
 
-    <div class="loading" id="loading">Processing image...</div>
+            <!-- Upload Section (Hidden initially, appears after test selection) -->
+            <section id="uploadSection" class="mt-8 hidden">
+                <div class="mx-auto w-full max-w-xl glass rounded-2xl p-6 shadow-2xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 id="chosenTestTitle" class="text-2xl font-semibold"></h3>
+                        <button id="changeTestBtn" class="text-sm py-1 px-3 rounded-md hover:bg-white/10 transition-colors duration-200 border border-white/20 hover:border-white/40">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            Change Test
+                        </button>
+                    </div>
+                    
+                    <!-- Preview Box -->
+                    <div id="previewBox" class="w-full h-64 border-2 border-dashed border-white/20 rounded-xl flex flex-col items-center justify-center overflow-hidden bg-white/5 text-white/70 cursor-pointer hover:border-green-400/50 hover:bg-green-500/10 transition-all duration-300 group">
+                        <div id="previewContent" class="flex flex-col items-center justify-center text-center p-4">
+                            <svg id="uploadIcon" class="w-12 h-12 mb-3 text-white/50 group-hover:text-green-400 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                            </svg>
+                            <span id="previewText" class="text-lg font-medium mb-2">Click here to select an image</span>
+                            <span class="text-sm text-white/50">or drag & drop your file here</span>
+                            <span class="text-xs text-white/40 mt-2">Supports: PNG, JPG, JPEG, GIF, BMP (max 10MB)</span>
+                        </div>
+                        <img id="previewImg" class="hidden w-full h-full object-contain" alt="Preview"/>
+                    </div>
+                    
+                    <div class="mt-4 flex flex-wrap gap-3">
+                        <input id="fileInput" type="file" accept="image/*" class="hidden">
+                        <button id="selectImageBtn" class="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 transition-all duration-200 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            Select New Image
+                        </button>
+                        <button id="sampleImagesBtn" class="px-4 py-2 rounded-lg bg-purple-600/20 hover:bg-purple-600/30 border border-purple-400/30 hover:border-purple-400/50 transition-all duration-200 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                            </svg>
+                            Sample Images
+                        </button>
+                        <input 
+                            type="file" 
+                            id="sampleFileInput" 
+                            accept=".png,.jpg,.jpeg,.bmp,.tiff"
+                            class="hidden"
+                            webkitdirectory="false"
+                        >
+                        <button id="analyzeBtn" class="px-6 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 disabled:from-gray-600 disabled:to-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2 font-medium" disabled>
+                            <svg id="analyzeIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            Analyze Image
+                        </button>
+                        
+                        <div id="analyzeSpinner" class="ml-3 hidden items-center space-x-2 text-sm text-white/80">
+                            <svg class="animate-spin h-5 w-5 text-blue-400" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                            </svg>
+                            <span class="font-medium">Analyzing image...</span>
+                        </div>
+                    </div>
+                    
+                    <p class="mt-4 text-sm text-white/70 bg-white/5 rounded-lg p-3 border border-white/10">
+                        <strong class="text-white/90">💡 Tips:</strong> 
+                        For best results, ensure your image is well-lit, in focus, and the test strip is clearly visible. 
+                        After analysis, you'll see detailed results with interpretation.
+                    </p>
+                    
+                    <!-- Status Messages -->
+                    <div id="statusMessages" class="mt-3 space-y-2"></div>
+                </div>
+            </section>
 
-    <div class="crop-instructions" id="crop-instructions">
-      Click and drag on the image to select the area you want to crop. Then click "Crop" to confirm your selection.
-    </div>
+            <!-- Sample Images Modal -->
+            <div id="sampleImagesModal" class="fixed inset-0 z-40 hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+                <div class="w-full max-w-4xl max-h-[90vh] p-6 rounded-2xl glass shadow-2xl transform transition-all duration-300 scale-95 opacity-0 overflow-hidden" id="sampleImagesModalContent">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">Sample Images</h3>
+                        <button id="closeSampleImagesModal" class="p-2 rounded-full hover:bg-white/10 transition-colors duration-200">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="overflow-y-auto max-h-[70vh]">
+                        <div id="sampleImagesContent">
+                            <!-- Content will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 text-center">
+                        <p class="text-sm text-white/60">Click on any sample image to use it for testing</p>
+                    </div>
+                </div>
+            </div>
 
-    <div class="image-preview" id="preview-container">
-      <canvas id="canvas" style="display:none;" role="img" aria-label="Image canvas for cropping"></canvas>
-      <img id="cropped-img" style="display:none;" alt="Cropped image preview" />
-    </div>
+        </div>
+    </main>
 
-    <div class="controls">
-      <button onclick="cropImage()" id="crop-btn" disabled>Crop</button>
-      <button onclick="resetCrop()" id="reset-btn" disabled>Reset</button>
-      <button onclick="selectNewImage()" id="new-image-btn" disabled>Select New Image</button>
-    </div>
-
-    <button onclick="submitImage()" id="submit-btn" disabled>Analyze Strip</button>
-  </div>
-
-  <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="sample-images-config.js?v=2"></script>
+    <script src="analyze.js?v=2"></script>
 </body>
 </html>

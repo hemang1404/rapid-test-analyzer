@@ -1,5 +1,7 @@
 // Client-side logic for index.html
-(function(){
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Content Loaded - JavaScript initializing...');
+    
     // DOM element references
     const previewImg = document.getElementById('previewImg');
     const previewText = document.getElementById('previewText');
@@ -10,6 +12,12 @@
     const fileInput = document.getElementById('fileInput');
     const analyzeSpinner = document.getElementById('analyzeSpinner');
     const statusMessages = document.getElementById('statusMessages');
+    
+    console.log('Elements found:', {
+        selectImageBtn: !!document.getElementById('selectImageBtn'),
+        sampleImagesBtn: !!document.getElementById('sampleImagesBtn'),
+        fileInput: !!fileInput
+    });
 
     // Placeholder for selectedTest and url
     let selectedTest = null;
@@ -149,6 +157,10 @@
         document.getElementById('uploadSection').classList.add('hidden');
         document.getElementById('landingSection').classList.remove('hidden'); // Show landing section again
         selectedTest = null;
+        
+        // Hide sample images button  
+        document.getElementById('sampleImagesBtn').style.display = 'none';
+        
         resetFileInput();
         showStatus('Select a different test type to continue', 'info');
     });
@@ -180,6 +192,10 @@
             selectedTest = testType;
             document.getElementById('uploadSection').classList.remove('hidden');
             document.getElementById('landingSection').classList.add('hidden'); // Hide landing section
+            
+            // Show sample images button
+            document.getElementById('sampleImagesBtn').style.display = 'flex';
+            
             animateModal(false);
             
             // Update title with more descriptive text
@@ -198,7 +214,255 @@
         });
     });
 
-    // Set url and preview image when file is selected
+    // Sample Images functionality - Modal with static images
+    document.getElementById('sampleImagesBtn').addEventListener('click', function() {
+        if (!selectedTest) {
+            showStatus('❌ Please select a test type first before viewing sample images', 'error');
+            return;
+        }
+        showSampleImagesModal();
+    });
+
+    // Close sample images modal
+    const closeSampleImagesModal = document.getElementById('closeSampleImagesModal');
+    if (closeSampleImagesModal) {
+        closeSampleImagesModal.addEventListener('click', function() {
+            hideSampleImagesModal();
+        });
+    }
+
+    // Close modal when clicking outside
+    const sampleImagesModal = document.getElementById('sampleImagesModal');
+    if (sampleImagesModal) {
+        sampleImagesModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideSampleImagesModal();
+            }
+        });
+    }
+
+    function showSampleImagesModal() {
+        console.log('showSampleImagesModal called');
+        
+        const modal = document.getElementById('sampleImagesModal');
+        const modalContent = document.getElementById('sampleImagesModalContent');
+        const contentDiv = document.getElementById('sampleImagesContent');
+        
+        console.log('Modal elements check:', {
+            modal: !!modal,
+            modalContent: !!modalContent,
+            contentDiv: !!contentDiv
+        });
+        
+        if (!modal || !modalContent || !contentDiv) {
+            console.error('Sample images modal elements not found');
+            console.log('Available elements with sample in id:', 
+                Array.from(document.querySelectorAll('[id*="sample"]')).map(el => el.id)
+            );
+            showStatus('❌ Sample images feature not available', 'error');
+            return;
+        }
+        
+        // Check if config is loaded
+        console.log('Sample images config:', window.sampleImagesConfig);
+        
+        // Get sample images for the selected test
+        const config = window.sampleImagesConfig || {};
+        const images = config[selectedTest] || [];
+        
+        console.log(`Found ${images.length} images for ${selectedTest} test`);
+        
+        if (images.length === 0) {
+            contentDiv.innerHTML = `
+                <div class="text-center py-8">
+                    <div class="w-16 h-16 bg-gray-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-2">No Sample Images Available</h3>
+                    <p class="text-white/70">Sample images for ${selectedTest.toUpperCase()} tests are coming soon!</p>
+                </div>
+            `;
+        } else {
+            const testName = selectedTest === 'ph' ? 'pH Strip' : selectedTest === 'fob' ? 'FOB Test' : selectedTest.toUpperCase();
+            contentDiv.innerHTML = `
+                <div class="mb-6">
+                    <h4 class="text-xl font-semibold mb-4 text-center">${testName} Sample Images</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        ${images.map((image, index) => `
+                            <div class="sample-image-card glass rounded-lg p-4 hover:bg-white/10 transition-all duration-300 cursor-pointer group" data-image-url="${image.url}" data-image-name="${image.name}" data-is-placeholder="${image.placeholder || false}">
+                                <div class="aspect-video bg-white/5 rounded-lg mb-3 flex items-center justify-center border-2 border-dashed border-white/20 group-hover:border-purple-400/50 transition-colors overflow-hidden">
+                                    ${image.placeholder ? `
+                                        <div class="text-center">
+                                            <svg class="w-8 h-8 text-white/40 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                            </svg>
+                                            <p class="text-xs text-white/60">Demo Image</p>
+                                        </div>
+                                    ` : `
+                                        <img src="${image.url}" alt="${image.name}" class="w-full h-full object-cover rounded" onload="this.classList.add('loaded')" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                        <div class="text-center hidden">
+                                            <svg class="w-8 h-8 text-white/40 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                            </svg>
+                                            <p class="text-xs text-white/60">Loading...</p>
+                                        </div>
+                                    `}
+                                </div>
+                                <h5 class="font-semibold text-sm mb-2 group-hover:text-purple-300 transition-colors">${image.name}</h5>
+                                <div class="mt-3 text-center">
+                                    <span class="inline-block px-3 py-1 bg-purple-500/20 text-purple-300 text-xs rounded-full border border-purple-400/30">Click to Use</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            
+            // Add click listeners to sample image cards
+            document.querySelectorAll('.sample-image-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const imageUrl = this.dataset.imageUrl;
+                    const imageName = this.dataset.imageName;
+                    const isPlaceholder = this.dataset.isPlaceholder === 'true';
+                    
+                    if (isPlaceholder) {
+                        // Create a demo image
+                        createDemoSampleImage(imageName);
+                        hideSampleImagesModal();
+                        showStatus(`✅ Loaded demo sample: ${imageName}`, 'success');
+                    } else {
+                        // Try to load the actual image
+                        fetch(imageUrl)
+                            .then(response => {
+                                if (!response.ok) throw new Error('Image not found');
+                                return response.blob();
+                            })
+                            .then(blob => {
+                                const file = new File([blob], `sample-${imageName.toLowerCase().replace(/\s+/g, '-')}.jpg`, { type: 'image/jpeg' });
+                                loadSampleImageFile(file, imageName);
+                                hideSampleImagesModal();
+                                showStatus(`✅ Loaded sample image: ${imageName}`, 'success');
+                            })
+                            .catch(error => {
+                                console.log('Sample image not found, creating demo preview');
+                                createDemoSampleImage(imageName);
+                                hideSampleImagesModal();
+                                showStatus(`✅ Loaded demo sample: ${imageName}`, 'success');
+                            });
+                    }
+                });
+            });
+        }
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        setTimeout(() => {
+            modalContent.classList.remove('scale-95', 'opacity-0');
+            modalContent.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    function hideSampleImagesModal() {
+        const modal = document.getElementById('sampleImagesModal');
+        const modalContent = document.getElementById('sampleImagesModalContent');
+        
+        modalContent.classList.add('scale-95', 'opacity-0');
+        modalContent.classList.remove('scale-100', 'opacity-100');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }, 300);
+    }
+
+    function loadSampleImageFile(file, imageName) {
+        // Update the file input (for backend processing)
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        fileInput.files = dataTransfer.files;
+        
+        // Update the preview
+        const url = URL.createObjectURL(file);
+        previewImg.src = url;
+        previewImg.classList.remove('hidden');
+        previewContent.style.display = 'none';
+        analyzeBtn.disabled = false;
+        
+        // Update preview text for demo
+        if (previewText) {
+            previewText.textContent = `Sample: ${imageName}`;
+        }
+    }
+
+    function createDemoSampleImage(imageName) {
+        // Create a demo image using canvas
+        const canvas = document.createElement('canvas');
+        canvas.width = 400;
+        canvas.height = 300;
+        const ctx = canvas.getContext('2d');
+        
+        // Create a gradient background based on test type
+        const gradient = ctx.createLinearGradient(0, 0, 400, 300);
+        if (selectedTest === 'ph') {
+            // pH strip colors
+            gradient.addColorStop(0, '#FF6B6B');
+            gradient.addColorStop(0.5, '#4ECDC4');
+            gradient.addColorStop(1, '#45B7D1');
+        } else if (selectedTest === 'fob') {
+            // FOB test colors
+            gradient.addColorStop(0, '#96CEB4');
+            gradient.addColorStop(1, '#FFEAA7');
+        } else {
+            gradient.addColorStop(0, '#74b9ff');
+            gradient.addColorStop(1, '#6c5ce7');
+        }
+        
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 400, 300);
+        
+        // Add border
+        ctx.strokeStyle = '#333';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(0, 0, 400, 300);
+        
+        // Add text
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 24px Arial';
+        ctx.textAlign = 'center';
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 2;
+        ctx.fillText('DEMO SAMPLE', 200, 130);
+        
+        ctx.font = '18px Arial';
+        ctx.fillText(imageName, 200, 160);
+        
+        ctx.font = '14px Arial';
+        ctx.fillText('(Generated for Testing)', 200, 190);
+        
+        // Convert to blob and load
+        canvas.toBlob(blob => {
+            const file = new File([blob], `demo-${imageName.toLowerCase().replace(/\s+/g, '-')}.png`, { type: 'image/png' });
+            loadSampleImageFile(file, imageName);
+        });
+    }
+
+    // Handle sample file selection (fallback for local file input)
+    document.getElementById('sampleFileInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            // Use the same file handling as the main file input
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files;
+            
+            // Trigger the change event to update the preview
+            fileInput.dispatchEvent(new Event('change'));
+            
+            showStatus(`✅ Loaded sample image: ${file.name}`, 'success');
+        }
+    });
+
     document.getElementById('selectImageBtn').addEventListener('click', function() {
         fileInput.click();
     });
@@ -418,7 +682,7 @@
                     window.location.href = 'result.html';
                 }, 1000);
             }
-        } finally{
+        } finally {
             clearInterval(progressInterval); // Clear any remaining progress interval
             analyzeSpinner.classList.add('hidden');
             analyzeBtn.disabled = false;
@@ -429,8 +693,9 @@
     document.addEventListener('keydown', function(e) {
         // ESC to close modal
         if (e.key === 'Escape') {
-            const modal = document.getElementById('testModal');
-            if (!modal.classList.contains('hidden')) {
+            const testModal = document.getElementById('testModal');
+            
+            if (!testModal.classList.contains('hidden')) {
                 animateModal(false);
             }
         }
@@ -452,6 +717,12 @@
             fileInput.click();
         }
         
+        // Ctrl/Cmd + S to open sample images
+        if ((e.ctrlKey || e.metaKey) && e.key === 's' && selectedTest) {
+            e.preventDefault();
+            document.getElementById('sampleFileInput').click();
+        }
+        
         // Ctrl/Cmd + Enter to analyze (if ready)
         if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && !analyzeBtn.disabled && selectedTest && fileInput.files[0]) {
             e.preventDefault();
@@ -464,4 +735,4 @@
     document.getElementById('previewBox').setAttribute('role', 'button');
     document.getElementById('previewBox').setAttribute('aria-label', 'Click to select an image file');
 
-})();
+});

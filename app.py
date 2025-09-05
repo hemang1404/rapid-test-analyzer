@@ -28,7 +28,7 @@ except ImportError as e:
                 "analysis_id": analysis_id
             }
 
-app = Flask(__name__, template_folder='frontend', static_folder='frontend')
+app = Flask(__name__, template_folder='templates', static_folder='static')
 UPLOAD_FOLDER = "uploads"
 RESULT_IMAGES_FOLDER = "result_images"
 
@@ -51,9 +51,17 @@ def home():
     return render_template("index.html")
 
 # Serve static files (CSS, JS, images)
+@app.route('/static/<path:filename>')
+def serve_sample_images(filename):
+    return send_from_directory('static', filename)
+
+# Serve frontend files (JS, CSS, HTML from frontend folder)
 @app.route('/<path:filename>')
-def serve_static(filename):
-    return send_from_directory('frontend', filename)
+def serve_frontend_files(filename):
+    # Serve JS, CSS, and HTML files from frontend
+    if filename.endswith(('.js', '.css', '.html')):
+        return send_from_directory('frontend', filename)
+    return "File not found", 404
 
 # Add CORS headers for local development
 @app.after_request
