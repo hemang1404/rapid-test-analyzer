@@ -33,14 +33,15 @@ except ImportError as e:
             
         def analyze_ph_strip(self, image_path, debug=False, result_folder="result_images", analysis_id=None):
             print("⚠️ Using dummy pH analyzer - real analyzer not available")
+            # Return a pH value in the normal range for demo purposes
             return {
                 "success": True, 
-                "estimated_ph": 7.0,
+                "estimated_ph": 4.2,  # Normal vaginal pH for demo
                 "test_patch_color_hsv": [60, 100, 200],
                 "min_distance_to_reference": 0.5,
                 "detected_reference_patches_count": 7,
                 "result_images": [],
-                "estimated_ph_value": 7.0
+                "estimated_ph_value": 4.2
             }
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
@@ -152,22 +153,42 @@ def analyze():
 
             ph_value = result["estimated_ph"]
             logger.info(f"Estimated pH value: {ph_value}")
-            # Add pH interpretation
-            if ph_value < 6.0:
-                interpretation = "Acidic - may indicate acidosis or dietary factors"
-            elif ph_value > 8.0:
-                interpretation = "Alkaline - may indicate alkalosis or UTI"
-            else:
-                interpretation = "Normal pH range"
+            
+            # Vaginal pH Test Medical Interpretation
+            # Normal vaginal pH: 3.8-4.5 (healthy acidic environment)
+            # Moderate inflammation: 5.0-5.5 (bacterial imbalance)
+            # Severe inflammation: 6.0-8.0 (significant infection risk)
+            if 3.8 <= ph_value <= 4.5:
+                interpretation = "Normal - Healthy vaginal pH range. The acidic environment helps protect against infections."
+                medical_status = "Normal"
+                recommendation = "Continue maintaining good vaginal hygiene practices."
+            elif 5.0 <= ph_value <= 5.5:
+                interpretation = "Moderate Inflammation - pH indicates possible bacterial imbalance or mild infection."
+                medical_status = "Moderate Inflammation"
+                recommendation = "Consider consulting a healthcare provider for evaluation and possible treatment."
+            elif 6.0 <= ph_value <= 8.0:
+                interpretation = "Severe Inflammation - Elevated pH suggests significant bacterial imbalance or infection."
+                medical_status = "Severe Inflammation"
+                recommendation = "Recommend immediate consultation with a healthcare provider for proper diagnosis and treatment."
+            elif ph_value < 3.8:
+                interpretation = "Below Normal Range - Unusually acidic, may indicate other conditions."
+                medical_status = "Abnormally Low"
+                recommendation = "Consult healthcare provider for evaluation as this is below typical vaginal pH range."
+            else:  # pH > 8.0
+                interpretation = "Critically Elevated - pH significantly above normal range."
+                medical_status = "Critically High"
+                recommendation = "Urgent medical consultation recommended for proper diagnosis and treatment."
 
             response = {
                 "success": True,
                 "test_type": "ph",
-                "result": f"pH {ph_value:.1f}",
+                "result": f"pH {ph_value:.1f} - {medical_status}",
                 "pH": ph_value,
                 "estimated_ph": ph_value,
+                "medical_status": medical_status,
                 "diagnosis": interpretation,
-                "message": f"Estimated pH: {ph_value:.1f}",
+                "recommendation": recommendation,
+                "message": f"Vaginal pH: {ph_value:.1f} - {medical_status}",
                 "result_images": result.get("result_images", []),
                 "analysis_id": analysis_id
             }
