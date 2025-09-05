@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FOB & pH Strip Analyzer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h1>Rapid Test Strip Analyzer</h1>
+  <p>Upload your test strip image</p>
+
+  <div class="container">
+    <div id="error-message" class="error-message" role="alert"></div>
+    <div id="success-message" class="success-message" role="alert"></div>
+    
+    <!-- Results Section -->
+    <div id="results-section" class="results-section" style="display: none;">
+      <div class="results-header">
+        <h3>Analysis Results</h3>
+        <button onclick="clearResults()" class="clear-results-btn">×</button>
+      </div>
+      <div id="results-content" class="results-content"></div>
+      <div class="results-actions">
+        <button onclick="resetForNewTest()" class="reset-new-test-btn">🔄 Reset & Start New Test</button>
+      </div>
+    </div>
+    
+    <div class="example-images">
+      <img src="ph_example.jpg" alt="Example pH Strip showing color comparison chart" />
+      <img src="fob_example.jpg" alt="Example FOB Strip showing test result indicators" />
+    </div>
+
+    <label for="test-type">Select Test Type:</label>
+    <select id="test-type">
+      <option value="ph">Vaginal pH Test</option>
+      <option value="fob">FOB Test</option>
+    </select>
+
+    <div class="upload-area" id="upload-area" tabindex="0" role="button" aria-label="Upload image area - click or drag to upload">
+      <p>Click or drag an image here to upload (Max 5MB, JPG/PNG)</p>
+      <input type="file" id="file-input" accept="image/jpeg,image/png,image/jpg" hidden aria-label="File input" />
+    </div>
+
+    <div class="loading" id="loading">Processing image...</div>
+
+    <div class="crop-instructions" id="crop-instructions">
+      Click and drag on the image to select the area you want to crop. Then click "Crop" to confirm your selection.
+    </div>
+
+    <div class="image-preview" id="preview-container">
+      <canvas id="canvas" style="display:none;" role="img" aria-label="Image canvas for cropping"></canvas>
+      <img id="cropped-img" style="display:none;" alt="Cropped image preview" />
+    </div>
+
+    <div class="controls">
+      <button onclick="cropImage()" id="crop-btn" disabled>Crop</button>
+      <button onclick="resetCrop()" id="reset-btn" disabled>Reset</button>
+      <button onclick="selectNewImage()" id="new-image-btn" disabled>Select New Image</button>
+    </div>
+
+    <button onclick="submitImage()" id="submit-btn" disabled>Analyze Strip</button>
+  </div>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

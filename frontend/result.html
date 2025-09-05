@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Medical Analysis Report — Rapid Test Analyzer</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+    .glass {
+        backdrop-filter: blur(10px);
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .medical-report {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+        color: #1e293b;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    
+    .medical-header {
+        background: linear-gradient(135deg, #0f766e 0%, #059669 100%);
+        color: white;
+    }
+    
+    .result-badge {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+    
+    .print-friendly {
+        font-family: 'Times New Roman', serif;
+    }
+    
+    @media print {
+        body { background: white !important; }
+        .no-print { display: none !important; }
+        .medical-report { 
+            box-shadow: none !important; 
+            background: white !important;
+            border: 1px solid #000 !important;
+        }
+    }
+</style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-[#07361f] via-[#0b4d2f] to-[#064026] text-white antialiased flex items-center justify-center p-4">
+<div class="w-full max-w-4xl">
+    <div id="resultCard" class="medical-report rounded-2xl overflow-hidden shadow-2xl">
+        <!-- Medical report content will be filled by result.js -->
+    </div>
+    <div class="mt-6 text-center no-print">
+        <div class="flex justify-center gap-4">
+            <button id="newAnalysisBtn" class="px-6 py-3 rounded-lg bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white font-medium shadow-lg transition-all duration-200">
+                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                New Analysis
+            </button>
+            <button id="printReportBtn" class="px-6 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-medium shadow-lg transition-all duration-200">
+                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                </svg>
+                Print Report
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="result.js"></script>
+</body>
+</html>
