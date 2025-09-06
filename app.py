@@ -45,8 +45,14 @@ except ImportError as e:
             }
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
-UPLOAD_FOLDER = "uploads"
-RESULT_IMAGES_FOLDER = "result_images"
+
+# Configure Flask for memory optimization
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+app.config['UPLOAD_FOLDER'] = "uploads"
+app.config['RESULT_IMAGES_FOLDER'] = "result_images"
+
+UPLOAD_FOLDER = app.config['UPLOAD_FOLDER']
+RESULT_IMAGES_FOLDER = app.config['RESULT_IMAGES_FOLDER']
 
 # Create folders
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -106,7 +112,15 @@ def analyze():
     analysis_id = uuid.uuid4().hex
     filename = secure_filename(f"{analysis_id}_{image_file.filename}")
     image_path = os.path.join(UPLOAD_FOLDER, filename)
+    
+    # Save file and check size
     image_file.save(image_path)
+    
+    # Check file size to prevent memory issues
+    file_size = os.path.getsize(image_path)
+    if file_size > 10 * 1024 * 1024:  # 10MB limit
+        os.remove(image_path)
+        return jsonify({"error": "File too large. Please use images smaller than 10MB"}), 400
 
     try:
         if test_type == "fob":
@@ -214,10 +228,23 @@ def analyze():
         # Clean up uploaded file after processing
         if os.path.exists(image_path):
             os.remove(image_path)
+        
+        # Force garbage collection to free memory
+        import gc
+        gc.collect()
 
 
 if __name__ == "__main__":
     # Use environment variables for production deployment
     port = int(os.environ.get("PORT", 5000))
     debug = os.environ.get("FLASK_ENV") == "development"
-    app.run(host="0.0.0.0", port=port, debug=debug)
+    
+    # For production, limit workers and optimize for memory
+    if debug:
+        # Development mode
+        app.run(host="127.0.0.1", port=port, debug=True)
+    else:
+        # Production mode - optimize for memory
+        import gc
+        gc.set_threshold(700, 10, 10)  # More aggressive garbage collection
+        app.run(host="0.0.0.0", port=port, debug=False, threaded=True, processes=1)
