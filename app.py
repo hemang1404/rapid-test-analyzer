@@ -92,6 +92,11 @@ def allowed_file(filename):
 def home():
     return render_template("index.html")
 
+# Health check endpoint for deployment platforms
+@app.route("/health")
+def health():
+    return jsonify({"status": "healthy", "service": "rapid-test-analyzer"}), 200
+
 # Serve static files (CSS, JS, images)
 @app.route('/static/<path:filename>')
 def serve_sample_images(filename):
