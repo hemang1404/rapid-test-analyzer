@@ -1,5 +1,12 @@
 # Rapid Test Analyzer 🧪
 
+![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)
+![Flask](https://img.shields.io/badge/Flask-3.0-green.svg)
+![OpenCV](https://img.shields.io/badge/OpenCV-4.8-orange.svg)
+![scikit--learn](https://img.shields.io/badge/scikit--learn-1.5+-red.svg)
+![Status](https://img.shields.io/badge/Status-Live-success.svg)
+![License](https://img.shields.io/badge/License-Proprietary-red.svg)
+
 🌐 **Live Demo**: [https://rapid-test-analyzer.onrender.com](https://rapid-test-analyzer.onrender.com)
 
 ## Overview
