@@ -22,10 +22,14 @@ const data = JSON.parse(raw);
 const testName = data.test || 'Test';
 const testDisplay = testName === 'ph' ? 'pH Strip Analysis' : 
                    testName === 'fob' ? 'Fecal Occult Blood Test' : 
-                   testName === 'urinalysis' ? 'Urinalysis' : 
+                   testName === 'urinalysis' ? 'Urinalysis Strip Test' : 
                    testName.charAt(0).toUpperCase() + testName.slice(1) + ' Test';
 const resultText = data.result || JSON.stringify(data.raw || '');
 const diagnosis = data.diagnosis || '';
+
+// Check if this is urinalysis test
+const isUrinalysis = testName === 'urinalysis';
+const urinalysisResults = isUrinalysis ? (data.raw?.results || {}) : null;
 
 // Generate report ID
 const reportId = 'RTA-' + Date.now().toString().slice(-6);
@@ -112,18 +116,80 @@ container.innerHTML = `
         Test Results
     </h3>
     <div class="bg-gray-50 rounded-lg p-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-                <label class="text-sm font-medium text-gray-600 block mb-1">Primary Result</label>
-                <div class="text-lg font-semibold text-gray-800">${escapeHtml(resultText)}</div>
+        ${isUrinalysis && urinalysisResults && Object.keys(urinalysisResults).length > 0 ? `
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-300">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th scope="col" class="py-3 px-4 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Test Parameter</th>
+                            <th scope="col" class="py-3 px-4 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Result</th>
+                            <th scope="col" class="py-3 px-4 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Confidence</th>
+                            <th scope="col" class="py-3 px-4 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        ${Object.entries(urinalysisResults).map(([testCode, testData]) => {
+                            const testName = testData.test_name || testCode;
+                            const result = testData.result || 'N/A';
+                            const confidence = testData.confidence ? (testData.confidence * 100).toFixed(1) + '%' : 'N/A';
+                            
+                            // Determine if result is abnormal
+                            const isAbnormal = ['BLO', 'GLU', 'PRO', 'KET', 'NIT', 'LEU'].includes(testCode) && 
+                                             !['Neg', 'NEG', 'negative'].includes(result);
+                            
+                            const statusColor = isAbnormal ? 'text-red-600 bg-red-50' : 'text-green-600 bg-green-50';
+                            const statusText = isAbnormal ? 'Abnormal' : 'Normal';
+                            
+                            return `
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="py-3 px-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <span class="font-medium text-gray-900">${escapeHtml(testName)}</span>
+                                            <span class="ml-2 text-xs text-gray-500">(${escapeHtml(testCode)})</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 whitespace-nowrap">
+                                        <span class="text-sm font-semibold text-gray-800">${escapeHtml(result)}</span>
+                                    </td>
+                                    <td class="py-3 px-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                                                <div class="bg-blue-600 h-2 rounded-full" style="width: ${testData.confidence ? (testData.confidence * 100) : 0}%"></div>
+                                            </div>
+                                            <span class="text-xs text-gray-600">${confidence}</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 whitespace-nowrap">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor}">
+                                            ${statusText}
+                                        </span>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
             </div>
-            <div>
-                <label class="text-sm font-medium text-gray-600 block mb-1">Result Classification</label>
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusColor} ${statusBg}">
-                    ${resultStatus}
-                </span>
+            <div class="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <p class="text-sm text-blue-800">
+                    <strong>Total Parameters Analyzed:</strong> ${Object.keys(urinalysisResults).length} | 
+                    <strong>Pads Detected:</strong> ${data.raw?.pads_detected || 'N/A'}
+                </p>
             </div>
-        </div>
+        ` : `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="text-sm font-medium text-gray-600 block mb-1">Primary Result</label>
+                    <div class="text-lg font-semibold text-gray-800">${escapeHtml(resultText)}</div>
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-600 block mb-1">Result Classification</label>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusColor} ${statusBg}">
+                        ${resultStatus}
+                    </span>
+                </div>
+            </div>
+        `}
     </div>
 </div>
 

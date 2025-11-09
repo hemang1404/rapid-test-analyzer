@@ -183,12 +183,6 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.addEventListener('click', function() {
             const testType = btn.getAttribute('data-test');
             
-            // Check if urinalysis - show under development popup
-            if (testType === 'urinalysis') {
-                showStatus('🚧 Urinalysis feature is coming soon! We\'re working hard to bring you this capability.', 'warning');
-                return;
-            }
-            
             selectedTest = testType;
             document.getElementById('uploadSection').classList.remove('hidden');
             document.getElementById('landingSection').classList.add('hidden'); // Hide landing section
@@ -201,7 +195,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update title with more descriptive text
             const testDisplayNames = {
                 'ph': 'pH Strip Analysis',
-                'fob': 'Fecal Occult Blood Test'
+                'fob': 'Fecal Occult Blood Test',
+                'urinalysis': 'Urinalysis Strip Test'
             };
             document.getElementById('chosenTestTitle').textContent = testDisplayNames[testType] || btn.textContent;
             

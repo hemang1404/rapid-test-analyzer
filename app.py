@@ -44,6 +44,26 @@ except ImportError as e:
                 "estimated_ph_value": 4.2
             }
 
+try:
+    from urinalysis_strip_analyzer import analyze_urinalysis
+    print("✅ Urinalysis analyzer imported successfully")
+    REAL_URINALYSIS_ANALYZER = True
+except ImportError as e:
+    print(f"❌ Urinalysis analyzer import failed: {e}")
+    REAL_URINALYSIS_ANALYZER = False
+    # Create dummy function for urinalysis
+    def analyze_urinalysis(image_path, debug=False, result_folder="result_images", analysis_id=None, k=3):
+        print("⚠️ Using dummy urinalysis analyzer - real analyzer not available")
+        return {
+            "success": True,
+            "status": "ok",
+            "type": "urinalysis",
+            "results": {},
+            "pads_detected": 0,
+            "result_images": [],
+            "message": "Urinalysis analyzer not available - demo mode"
+        }
+
 app = Flask(__name__, template_folder='templates', static_folder='static')
 
 # Configure Flask for memory optimization
@@ -76,6 +96,11 @@ def home():
 @app.route('/static/<path:filename>')
 def serve_sample_images(filename):
     return send_from_directory('static', filename)
+
+# Serve result images
+@app.route('/result_images/<path:filename>')
+def serve_result_images(filename):
+    return send_from_directory('result_images', filename)
 
 # Serve frontend files (JS, CSS, HTML from frontend folder)
 @app.route('/<path:filename>')
@@ -208,14 +233,65 @@ def analyze():
             }
 
         elif test_type == "urinalysis":
-            # Placeholder for urinalysis - you can implement this later
+            logger.info(f"Urinalysis analysis starting. Real analyzer available: {REAL_URINALYSIS_ANALYZER}")
+            
+            result = analyze_urinalysis(
+                image_path=image_path,
+                debug=True,  # Enable debug to see what's happening
+                result_folder=RESULT_IMAGES_FOLDER,
+                analysis_id=analysis_id,
+                k=3  # KNN parameter
+            )
+            
+            logger.info(f"Urinalysis analysis result: {result}")
+            logger.info(f"Results dict: {result.get('results', {})}")
+            
+            if not result.get("success", False):
+                logger.error(f"Urinalysis analysis failed: {result.get('error', 'Unknown error')}")
+                return jsonify({"error": result.get("error", "Urinalysis analysis failed")}), 500
+
+            # Format the results for display
+            test_results = result.get("results", {})
+            
+            # Create a summary message
+            abnormal_tests = []
+            for test_code, test_data in test_results.items():
+                # Handle both 'test_name' and 'name' keys for compatibility
+                test_name = test_data.get("test_name") or test_data.get("name", test_code)
+                result_value = test_data.get("result", "N/A")
+                
+                # Flag abnormal results (this is a simplified check - you can enhance this)
+                if test_code == "BLO" and result_value not in ["Neg"]:
+                    abnormal_tests.append(f"{test_name}: {result_value}")
+                elif test_code == "GLU" and result_value not in ["NEG"]:
+                    abnormal_tests.append(f"{test_name}: {result_value}")
+                elif test_code == "PRO" and result_value not in ["NEG"]:
+                    abnormal_tests.append(f"{test_name}: {result_value}")
+                elif test_code == "KET" and result_value not in ["NEG"]:
+                    abnormal_tests.append(f"{test_name}: {result_value}")
+                elif test_code == "NIT" and result_value not in ["NEG"]:
+                    abnormal_tests.append(f"{test_name}: {result_value}")
+                elif test_code == "LEU" and result_value not in ["NEG"]:
+                    abnormal_tests.append(f"{test_name}: {result_value}")
+            
+            if abnormal_tests:
+                summary = f"Analysis complete. {len(abnormal_tests)} abnormal result(s) detected: {', '.join(abnormal_tests[:3])}"
+                if len(abnormal_tests) > 3:
+                    summary += f" and {len(abnormal_tests) - 3} more"
+                recommendation = "Consult a healthcare provider for proper evaluation of abnormal results."
+            else:
+                summary = "All urinalysis parameters within normal ranges."
+                recommendation = "Results appear normal. Continue regular health monitoring."
+            
             response = {
                 "success": True,
                 "test_type": "urinalysis",
-                "result": "Feature coming soon",
-                "diagnosis": "Urinalysis feature is currently under development.",
-                "message": "Urinalysis analysis will be available in a future update.",
-                "result_images": [],
+                "results": test_results,
+                "pads_detected": result.get("pads_detected", 0),
+                "diagnosis": summary,
+                "recommendation": recommendation,
+                "message": result.get("message", "Urinalysis strip analyzed successfully"),
+                "result_images": result.get("result_images", []),
                 "analysis_id": analysis_id
             }
 
