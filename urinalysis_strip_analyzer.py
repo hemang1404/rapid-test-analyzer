@@ -493,17 +493,33 @@ def create_results_visualization(debug_img: np.ndarray, results: Dict) -> np.nda
 def analyze_urinalysis(image_path: str, debug: bool = False, result_folder: str = "result_images", 
                        analysis_id: Optional[str] = None, k: int = 3) -> Dict[str, Any]:
     """
-    Analyze urinalysis strip image - Flask app compatible
+    Analyze urinalysis test strip using KNN-based color matching.
+    
+    This function performs comprehensive urinalysis by detecting test pads,
+    matching colors to reference values using K-Nearest Neighbors algorithm,
+    and generating diagnostic results for 10 medical parameters.
     
     Args:
-        image_path: Path to the strip image
-        debug: Enable debug mode (console output only)
-        result_folder: Folder to save result images
-        analysis_id: Unique ID for this analysis
-        k: K value for KNN
+        image_path: Path to the urinalysis test strip image
+        debug: Enable debug mode with console output (default: False)
+        result_folder: Directory to save result images (default: "result_images")
+        analysis_id: Unique identifier for this analysis (auto-generated if None)
+        k: Number of neighbors for KNN algorithm (default: 3)
         
     Returns:
-        Dictionary with analysis results compatible with Flask app
+        Dictionary with analysis results:
+        - success (bool): Analysis completion status
+        - status (str): "ok" or "error"
+        - type (str): Always "urinalysis"
+        - results (Dict): Test results for BLO, BIL, URO, KET, PRO, NIT, GLU, pH, SG, LEU
+        - pads_detected (int): Number of pads detected
+        - result_images (List[str]): Paths to result visualization images
+        - message (str): Summary message
+        
+    Example:
+        >>> result = analyze_urinalysis("strip.jpg", debug=True, k=5)
+        >>> if result["success"]:
+        ...     print(f"Detected {result['pads_detected']} pads")
     """
     try:
         logger.info(f"Starting urinalysis analysis: {image_path}")

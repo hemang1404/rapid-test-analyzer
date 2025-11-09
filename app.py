@@ -3,6 +3,8 @@ from werkzeug.utils import secure_filename
 import os
 import uuid
 import logging
+from config import get_config
+from utils import validate_image_quality, validate_file_extension, safe_file_cleanup, AnalysisValidator
 
 # Wrap imports in try-catch for better error handling
 try:
@@ -66,26 +68,45 @@ except ImportError as e:
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 
-# Configure Flask for memory optimization
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
-app.config['UPLOAD_FOLDER'] = "uploads"
-app.config['RESULT_IMAGES_FOLDER'] = "result_images"
+# Load configuration based on environment
+env = os.environ.get("FLASK_ENV", "production")
+app.config.from_object(get_config(env))
 
+# Configure Flask for memory optimization
 UPLOAD_FOLDER = app.config['UPLOAD_FOLDER']
 RESULT_IMAGES_FOLDER = app.config['RESULT_IMAGES_FOLDER']
+ALLOWED_EXTENSIONS = app.config['ALLOWED_EXTENSIONS']
 
 # Create folders
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(RESULT_IMAGES_FOLDER, exist_ok=True)
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp'}
-
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Initialize rate limiter if enabled
+if app.config.get('RATE_LIMIT_ENABLED', False):
+    try:
+        from flask_limiter import Limiter
+        from flask_limiter.util import get_remote_address
+        
+        limiter = Limiter(
+            app=app,
+            key_func=get_remote_address,
+            default_limits=[f"{app.config.get('RATE_LIMIT_PER_MINUTE', 10)} per minute"],
+            storage_uri="memory://"
+        )
+        logger.info("Rate limiting enabled")
+    except ImportError:
+        logger.warning("flask-limiter not installed. Rate limiting disabled.")
+        limiter = None
+else:
+    limiter = None
+    logger.info("Rate limiting disabled (development mode)")
+
 def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    """Check if file extension is allowed"""
+    return validate_file_extension(filename, ALLOWED_EXTENSIONS)
 
 # Route for frontend
 @app.route("/")
@@ -126,6 +147,22 @@ def after_request(response):
 # API endpoint for analysis
 @app.route("/analyze", methods=["POST"])
 def analyze():
+    """
+    Analyze uploaded medical test image.
+    
+    Accepts POST request with:
+    - image: File upload (PNG, JPG, JPEG, GIF, BMP)
+    - test_type: String ('ph', 'fob', 'urinalysis')
+    
+    Returns:
+        JSON response with analysis results or error message
+        
+    Example:
+        POST /analyze
+        Content-Type: multipart/form-data
+        image: <file>
+        test_type: "urinalysis"
+    """
     if "image" not in request.files:
         return jsonify({"error": "No image provided"}), 400
 
@@ -133,10 +170,10 @@ def analyze():
     test_type = request.form.get("test_type")
 
     if not test_type or test_type not in ["ph", "fob", "urinalysis"]:
-        return jsonify({"error": "Invalid test type"}), 400
+        return jsonify({"error": "Invalid test type. Must be 'ph', 'fob', or 'urinalysis'"}), 400
 
     if not allowed_file(image_file.filename):
-        return jsonify({"error": "Invalid file type"}), 400
+        return jsonify({"error": f"Invalid file type. Allowed types: {', '.join(ALLOWED_EXTENSIONS)}"}), 400
 
     # Generate unique analysis ID
     analysis_id = uuid.uuid4().hex
@@ -149,8 +186,14 @@ def analyze():
     # Check file size to prevent memory issues
     file_size = os.path.getsize(image_path)
     if file_size > 10 * 1024 * 1024:  # 10MB limit
-        os.remove(image_path)
+        safe_file_cleanup(image_path)
         return jsonify({"error": "File too large. Please use images smaller than 10MB"}), 400
+    
+    # Validate image quality
+    is_valid, error_message = validate_image_quality(image_path)
+    if not is_valid:
+        safe_file_cleanup(image_path)
+        return jsonify({"error": error_message}), 400
 
     try:
         if test_type == "fob":
@@ -258,34 +301,24 @@ def analyze():
             # Format the results for display
             test_results = result.get("results", {})
             
-            # Create a summary message
-            abnormal_tests = []
-            for test_code, test_data in test_results.items():
-                # Handle both 'test_name' and 'name' keys for compatibility
-                test_name = test_data.get("test_name") or test_data.get("name", test_code)
-                result_value = test_data.get("result", "N/A")
-                
-                # Flag abnormal results (this is a simplified check - you can enhance this)
-                if test_code == "BLO" and result_value not in ["Neg"]:
-                    abnormal_tests.append(f"{test_name}: {result_value}")
-                elif test_code == "GLU" and result_value not in ["NEG"]:
-                    abnormal_tests.append(f"{test_name}: {result_value}")
-                elif test_code == "PRO" and result_value not in ["NEG"]:
-                    abnormal_tests.append(f"{test_name}: {result_value}")
-                elif test_code == "KET" and result_value not in ["NEG"]:
-                    abnormal_tests.append(f"{test_name}: {result_value}")
-                elif test_code == "NIT" and result_value not in ["NEG"]:
-                    abnormal_tests.append(f"{test_name}: {result_value}")
-                elif test_code == "LEU" and result_value not in ["NEG"]:
-                    abnormal_tests.append(f"{test_name}: {result_value}")
+            # Use AnalysisValidator to assess abnormality
+            findings = AnalysisValidator.assess_abnormality(test_results)
             
-            if abnormal_tests:
-                summary = f"Analysis complete. {len(abnormal_tests)} abnormal result(s) detected: {', '.join(abnormal_tests[:3])}"
-                if len(abnormal_tests) > 3:
-                    summary += f" and {len(abnormal_tests) - 3} more"
+            # Create a summary message based on findings
+            if findings["critical"]:
+                critical_tests = [f"{f['test']}: {f['result']}" for f in findings["critical"][:3]]
+                summary = f"⚠️ {len(findings['critical'])} critical abnormal result(s) detected: {', '.join(critical_tests)}"
+                if len(findings["critical"]) > 3:
+                    summary += f" and {len(findings['critical']) - 3} more"
+                recommendation = "Urgent: Consult a healthcare provider immediately for proper evaluation."
+            elif findings["warning"]:
+                warning_tests = [f"{f['test']}: {f['result']}" for f in findings["warning"][:3]]
+                summary = f"⚠️ {len(findings['warning'])} abnormal result(s) detected: {', '.join(warning_tests)}"
+                if len(findings["warning"]) > 3:
+                    summary += f" and {len(findings['warning']) - 3} more"
                 recommendation = "Consult a healthcare provider for proper evaluation of abnormal results."
             else:
-                summary = "All urinalysis parameters within normal ranges."
+                summary = "✓ All urinalysis parameters within normal ranges."
                 recommendation = "Results appear normal. Continue regular health monitoring."
             
             response = {
@@ -304,11 +337,11 @@ def analyze():
 
     except Exception as e:
         logger.error(f"Error analyzing {test_type} image: {str(e)}")
+        safe_file_cleanup(image_path)
         return jsonify({"error": str(e)}), 500
     finally:
         # Clean up uploaded file after processing
-        if os.path.exists(image_path):
-            os.remove(image_path)
+        safe_file_cleanup(image_path)
         
         # Force garbage collection to free memory
         import gc
