@@ -58,6 +58,33 @@ const sampleImagesConfig = {
             url: "/static/sample-images/fob/real%20test%20positive.jpeg",
             placeholder: false
         }
+    ],
+    urinalysis: [
+        {
+            name: "Urinalysis Sample 1",
+            url: "/static/sample-images/urinalysis/uri-test-1.jpeg",
+            placeholder: false
+        },
+        {
+            name: "Urinalysis Sample 2",
+            url: "/static/sample-images/urinalysis/uri-test-2.jpeg",
+            placeholder: false
+        },
+        {
+            name: "Urinalysis Sample 3",
+            url: "/static/sample-images/urinalysis/uri-test-3.jpeg",
+            placeholder: false
+        },
+        {
+            name: "Urinalysis Sample 4",
+            url: "/static/sample-images/urinalysis/uri-test-4.jpg",
+            placeholder: false
+        },
+        {
+            name: "Urinalysis Sample 5",
+            url: "/static/sample-images/urinalysis/uri-test-5.jpg",
+            placeholder: false
+        }
     ]
 };
 
