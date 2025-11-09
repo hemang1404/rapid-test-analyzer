@@ -1,5 +1,7 @@
 # Rapid Test Analyzer 🧪
 
+🌐 **Live Demo**: [https://rapid-test-analyzer.onrender.com](https://rapid-test-analyzer.onrender.com)
+
 ## Overview
 Advanced AI-powered medical test analysis system with professional-grade reporting capabilities. Supports pH strip analysis, Fecal Occult Blood (FOB) testing, and Urinalysis with computer vision and machine learning.
 
@@ -175,9 +177,6 @@ No environment variables required for basic deployment. The app works out of the
 2. Create a feature branch
 3. Make your changes
 4. Submit a pull request
-
-## License
-This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Medical Disclaimer
 This system is for informational purposes only. Results should be verified by qualified healthcare professionals. Not intended to replace professional medical diagnosis.
