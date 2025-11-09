@@ -65,7 +65,10 @@ uploads/*.bmp
 !uploads/.gitkeep
 
 # Result images
-result\ images/
+result_images/*.jpg
+result_images/*.png
+result_images/*.jpeg
+!result_images/.gitkeep
 
 # Temporary files
 *.tmp
