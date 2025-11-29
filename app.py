@@ -113,6 +113,11 @@ def allowed_file(filename):
 def home():
     return render_template("index.html")
 
+# Custom loading/splash screen
+@app.route("/loading")
+def loading():
+    return send_from_directory('static', 'loading.html')
+
 # Health check endpoint for deployment platforms
 @app.route("/health")
 def health():

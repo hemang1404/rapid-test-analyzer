@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading - Rapid Test Analyzer</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #07361f 0%, #0b4d2f 50%, #064026 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            overflow: hidden;
+        }
+
+        .loading-container {
+            text-align: center;
+            color: white;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 30px;
+            position: relative;
+        }
+
+        .logo-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0f9d58 0%, #138a4a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            box-shadow: 0 10px 40px rgba(15, 157, 88, 0.3);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 10px 40px rgba(15, 157, 88, 0.3); }
+            50% { transform: scale(1.05); box-shadow: 0 15px 50px rgba(15, 157, 88, 0.5); }
+        }
+
+        .app-name {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        .tagline {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 40px;
+            font-weight: 300;
+        }
+
+        .spinner-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #4ade80;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 20px;
+            animation: breathe 2s ease-in-out infinite;
+        }
+
+        @keyframes breathe {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        .dots {
+            display: inline-block;
+            width: 30px;
+            text-align: left;
+        }
+
+        .dots::after {
+            content: '';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80%, 100% { content: '...'; }
+        }
+
+        .status-message {
+            margin-top: 30px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+            font-style: italic;
+        }
+
+        /* Particles background effect */
+        .particle {
+            position: absolute;
+            background: rgba(74, 222, 128, 0.3);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float linear infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) scale(1);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated particles -->
+    <script>
+        // Create floating particles
+        for (let i = 0; i < 15; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            const size = Math.random() * 5 + 2;
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+            particle.style.animationDelay = Math.random() * 5 + 's';
+            document.body.appendChild(particle);
+        }
+    </script>
+
+    <div class="loading-container">
+        <div class="logo">
+            <div class="logo-circle">
+                🧪
+            </div>
+        </div>
+        
+        <h1 class="app-name">Rapid Test Analyzer</h1>
+        <p class="tagline">AI-Powered Medical Test Analysis</p>
+        
+        <div class="spinner-container">
+            <div class="spinner"></div>
+        </div>
+        
+        <p class="loading-text">
+            Initializing system<span class="dots"></span>
+        </p>
+
+        <p class="status-message" id="statusMessage">
+            Starting up services...
+        </p>
+    </div>
+
+    <script>
+        // Simulate loading progress with status messages
+        const messages = [
+            "Starting up services...",
+            "Loading AI models...",
+            "Initializing analyzers...",
+            "Preparing workspace...",
+            "Almost ready..."
+        ];
+        
+        let messageIndex = 0;
+        const statusEl = document.getElementById('statusMessage');
+        
+        function updateStatus() {
+            if (messageIndex < messages.length) {
+                statusEl.textContent = messages[messageIndex];
+                messageIndex++;
+                setTimeout(updateStatus, 1500);
+            } else {
+                // After all messages, redirect to main app
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1000);
+            }
+        }
+        
+        // Start status updates after initial delay
+        setTimeout(updateStatus, 1000);
+        
+        // Fallback: redirect after max 10 seconds
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 10000);
+    </script>
+</body>
+</html>

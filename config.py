@@ -20,9 +20,9 @@ class Config:
     MIN_IMAGE_BRIGHTNESS = 20
     MAX_IMAGE_BRIGHTNESS = 235
     
-    # Rate limiting
-    RATE_LIMIT_ENABLED = True
-    RATE_LIMIT_PER_MINUTE = 10
+    # Rate limiting (disabled by default - flask-limiter not in requirements)
+    RATE_LIMIT_ENABLED = False
+    RATE_LIMIT_PER_MINUTE = 50  # Increased from 10 to 50
     
 class DevelopmentConfig(Config):
     """Development environment configuration"""
@@ -34,7 +34,7 @@ class ProductionConfig(Config):
     """Production environment configuration"""
     DEBUG = False
     TESTING = False
-    RATE_LIMIT_ENABLED = True
+    RATE_LIMIT_ENABLED = False  # Disabled - flask-limiter not installed on Render
     
 class TestingConfig(Config):
     """Testing environment configuration"""
