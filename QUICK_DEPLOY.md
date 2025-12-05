@@ -7,7 +7,7 @@ Stop showing Render's default loading screen. Show YOUR custom loading screen in
 
 ### 1. Update Backend URL in Loader
 
-Edit `frontend/loader.html` line 168:
+Edit `frontend/index.html` line 168:
 
 ```javascript
 const BACKEND_URL = 'https://rapid-test-analyzer.onrender.com'; // ← YOUR Render URL here
@@ -33,8 +33,8 @@ Visit your Netlify URL:
 ## 📁 What Each File Does
 
 **Frontend Files (Static - Deploy to Netlify):**
-- `loader.html` - Custom loading screen that pings backend
-- `index.html` - Main app interface
+- `index.html` - Custom loading screen that pings backend (ENTRY POINT)
+- `app.html` - Main app interface
 - `result.html` - Results display
 - `analyze.js` - Main app logic
 - `config.js` - Backend URL configuration
@@ -52,9 +52,9 @@ Visit your Netlify URL:
 ```
 User visits: https://your-app.netlify.app
          ↓
-Netlify serves loader.html instantly (< 1 second)
+Netlify serves index.html instantly (< 1 second)
          ↓
-loader.html shows spinning logo + "Waking up server..."
+index.html shows spinning logo + "Waking up server..."
          ↓
 JavaScript pings: https://rapid-test-analyzer.onrender.com/health
          ↓
@@ -62,7 +62,7 @@ Render backend wakes up (30-60 seconds on free tier)
          ↓
 Backend responds: { "status": "healthy" }
          ↓
-loader.html redirects to index.html
+index.html redirects to app.html
          ↓
 User can now analyze images!
 ```
@@ -77,8 +77,8 @@ User can now analyze images!
 # Just run the Flask backend - it serves frontend files too!
 python app.py
 
-# Visit: http://localhost:5000/index.html
-# Or test loader: http://localhost:5000/loader.html
+# Visit: http://localhost:5000/app.html
+# Or test loader: http://localhost:5000/index.html
 ```
 
 **Option B: Separate frontend/backend (simulates production)**
@@ -91,10 +91,11 @@ python app.py
 cd frontend
 python -m http.server 8000
 
-# Visit: http://localhost:8000/loader.html
+# Visit: http://localhost:8000/index.html (loader)
+# Or: http://localhost:8000/app.html (main app, but backend needs to be awake)
 ```
 
-⚠️ **Note:** With Option B, make sure `loader.html` line 168 has:
+⚠️ **Note:** With Option B, make sure `index.html` line 168 has:
 ```javascript
 const BACKEND_URL = 'http://localhost:5000';
 ```
@@ -104,7 +105,7 @@ const BACKEND_URL = 'http://localhost:5000';
 ## 🐛 Troubleshooting
 
 **Issue: "Connection failed" after 60 seconds**
-- Check BACKEND_URL in loader.html is correct
+- Check BACKEND_URL in index.html is correct
 - Visit backend URL directly to wake it up
 - Check browser console (F12) for errors
 
