@@ -35,7 +35,7 @@ All your frontend files are in the `frontend/` folder:
 Open `frontend/loader.html` and update line 145:
 
 ```javascript
-const BACKEND_URL = 'https://your-backend-name.onrender.com'; // ← Change this
+const BACKEND_URL = 'https://rapid-test-analyzer.onrender.com'; 
 ```
 
 Replace with your actual Render backend URL.
@@ -84,7 +84,7 @@ In `app.py`, update CORS:
 def after_request(response):
     # Add your Netlify URL here
     allowed_origins = [
-        'https://your-site-name.netlify.app',
+        'https://rapid-test-analyzer.netlify.app',
         'http://localhost:5000',  # For development
     ]
     
