@@ -4,17 +4,6 @@
   # No build command needed for static site
   command = "echo 'No build needed - static files'"
 
-# Redirect all routes to loader.html (SPA routing)
-[[redirects]]
-  from = "/"
-  to = "/loader.html"
-  status = 200
-
-[[redirects]]
-  from = "/*"
-  to = "/:splat"
-  status = 200
-
 # Headers for security and CORS
 [[headers]]
   for = "/*"
