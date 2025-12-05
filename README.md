@@ -7,7 +7,7 @@
 ![Status](https://img.shields.io/badge/Status-Live-success.svg)
 ![License](https://img.shields.io/badge/License-Proprietary-red.svg)
 
-🌐 **Live Demo**: [https://rapid-test-analyzer.onrender.com](https://rapid-test-analyzer.onrender.com)
+🌐 **Live Demo**: [https://rapid-test-analyzer.netlify.app](https://rapid-test-analyzer.netlify.app)
 
 ## Overview
 Advanced AI-powered medical test analysis system with professional-grade reporting capabilities. Supports pH strip analysis, Fecal Occult Blood (FOB) testing, and Urinalysis with computer vision and machine learning.
