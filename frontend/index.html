@@ -215,7 +215,7 @@
         // Check backend health
         async function checkBackendHealth() {
             try {
-                updateStatus(`Checking server (attempt ${retryCount + 1}/${MAX_RETRIES})`);
+                updateStatus(`Checking server`);
                 updateProgress((retryCount / MAX_RETRIES) * 100);
                 updateTip();
 
