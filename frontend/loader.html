@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading - Rapid Test Analyzer</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #07361f 0%, #0b4d2f 50%, #064026 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            overflow: hidden;
+        }
+
+        .loading-container {
+            text-align: center;
+            color: white;
+            animation: fadeIn 0.5s ease-in;
+            max-width: 90%;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 30px;
+            position: relative;
+        }
+
+        .logo-circle {
+            width: 100%;
+            height: 100%;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #10b981;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .logo-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 40px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            letter-spacing: -0.5px;
+        }
+
+        .status-text {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 10px;
+            min-height: 24px;
+        }
+
+        .progress-bar {
+            width: 300px;
+            max-width: 90%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            margin: 20px auto;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .dots {
+            display: inline-block;
+            width: 20px;
+            text-align: left;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 14px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .retry-btn {
+            margin-top: 15px;
+            padding: 10px 24px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .retry-btn:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+
+        .tips {
+            margin-top: 30px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-container">
+        <div class="logo">
+            <div class="logo-circle"></div>
+            <div class="logo-icon">🧪</div>
+        </div>
+        
+        <h1>Rapid Test Analyzer</h1>
+        <p class="status-text" id="statusText">Waking up backend server<span class="dots" id="dots"></span></p>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div id="errorContainer" style="display: none;">
+            <div class="error-message">
+                <strong>⚠️ Connection Issue</strong>
+                <p id="errorMessage"></p>
+                <button class="retry-btn" onclick="location.reload()">Retry</button>
+            </div>
+        </div>
+
+        <div class="tips">
+            <p id="tipText">💡 First visit may take 30-60 seconds as the server spins up</p>
+        </div>
+    </div>
+
+    <script>
+        // Configuration - UPDATE THIS WITH YOUR BACKEND URL
+        const BACKEND_URL = 'https://rapid-test-analyzer.onrender.com'; // Change to your actual backend URL
+        const HEALTH_ENDPOINT = '/health';
+        const MAX_RETRIES = 30; // 30 retries = ~60 seconds
+        const RETRY_INTERVAL = 2000; // 2 seconds between retries
+
+        let retryCount = 0;
+        let dotCount = 0;
+
+        // Animated dots
+        setInterval(() => {
+            dotCount = (dotCount + 1) % 4;
+            document.getElementById('dots').textContent = '.'.repeat(dotCount);
+        }, 500);
+
+        // Update status text
+        function updateStatus(message) {
+            document.getElementById('statusText').innerHTML = message + '<span class="dots" id="dots"></span>';
+        }
+
+        // Update progress bar
+        function updateProgress(percent) {
+            document.getElementById('progressFill').style.width = percent + '%';
+        }
+
+        // Show error
+        function showError(message) {
+            const errorMsg = `${message}\n\nBackend URL: ${BACKEND_URL}\nHealth endpoint: ${BACKEND_URL + HEALTH_ENDPOINT}\n\nTroubleshooting:\n1. Visit the health URL above directly in a new tab\n2. If it shows 404, your backend URL is wrong\n3. Check your Render dashboard for the correct URL`;
+            document.getElementById('errorMessage').textContent = errorMsg;
+            document.getElementById('errorContainer').style.display = 'block';
+        }
+
+        // Update tip based on retry count
+        function updateTip() {
+            const tipText = document.getElementById('tipText');
+            if (retryCount > 5 && retryCount <= 15) {
+                tipText.textContent = '⏳ Still waking up... Render free tier takes time on first load';
+            } else if (retryCount > 15 && retryCount <= 25) {
+                tipText.textContent = '⏰ Almost there... This is normal for cold starts';
+            } else if (retryCount > 25) {
+                tipText.textContent = '🔄 Taking longer than usual... Please wait';
+            }
+        }
+
+        // Check backend health
+        async function checkBackendHealth() {
+            try {
+                updateStatus(`Checking server (attempt ${retryCount + 1}/${MAX_RETRIES})`);
+                updateProgress((retryCount / MAX_RETRIES) * 100);
+                updateTip();
+
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+
+                const response = await fetch(BACKEND_URL + HEALTH_ENDPOINT, {
+                    method: 'GET',
+                    signal: controller.signal,
+                    cache: 'no-cache'
+                });
+
+                clearTimeout(timeoutId);
+
+                if (response.ok) {
+                    updateStatus('Backend ready! Redirecting');
+                    updateProgress(100);
+                    
+                    // Store backend URL for the app to use
+                    localStorage.setItem('backendUrl', BACKEND_URL);
+                    
+                    // Redirect to main app
+                    setTimeout(() => {
+                        window.location.href = '/index.html';
+                    }, 500);
+                    return true;
+                } else {
+                    throw new Error(`Server returned status ${response.status}`);
+                }
+            } catch (error) {
+                console.log(`Attempt ${retryCount + 1} failed:`, error.message);
+                
+                retryCount++;
+                
+                if (retryCount >= MAX_RETRIES) {
+                    updateStatus('Connection failed');
+                    showError(`Unable to connect to backend after ${MAX_RETRIES} attempts. The server might be down or experiencing issues.`);
+                    return false;
+                }
+                
+                // Retry
+                setTimeout(checkBackendHealth, RETRY_INTERVAL);
+                return false;
+            }
+        }
+
+        // Start checking when page loads
+        window.addEventListener('load', () => {
+            // Small delay for smooth animation
+            setTimeout(checkBackendHealth, 500);
+        });
+    </script>
+</body>
+</html>
