@@ -600,8 +600,8 @@ document.addEventListener('DOMContentLoaded', function() {
         form.append('image', file);
         form.append('test_type', selectedTest);
 
-        // Use relative URL for same-origin requests (works in both dev and production)
-        const ENDPOINT = '/analyze';
+        // Use backend URL from config (supports separate frontend/backend deployment)
+        const ENDPOINT = window.APP_CONFIG ? window.APP_CONFIG.apiUrl('analyze') : '/analyze';
 
         try{
             clearInterval(progressInterval); // Clear progress messages
