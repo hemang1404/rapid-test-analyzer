@@ -327,7 +327,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         ${images.map((image, index) => `
                             <div class="sample-image-card glass rounded-lg p-4 hover:bg-white/10 transition-all duration-200 cursor-pointer group" data-image-url="${image.url}" data-image-name="${image.name}" data-is-placeholder="${image.placeholder || false}">
-                                <div class="aspect-video bg-white/5 rounded-lg mb-3 flex items-center justify-center border-2 border-dashed border-white/20 group-hover:border-purple-400/50 transition-colors overflow-hidden">`
+                                <div class="aspect-video bg-white/5 rounded-lg mb-3 flex items-center justify-center border-2 border-dashed border-white/20 group-hover:border-purple-400/50 transition-colors overflow-hidden">
                                     ${image.placeholder ? `
                                         <div class="text-center">
                                             <svg class="w-8 h-8 text-white/40 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
