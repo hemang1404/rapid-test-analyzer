@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (currentStatusElement && currentStatusElement.parentNode === statusContainer) {
             // Update existing element
             currentStatusElement.textContent = message;
-            currentStatusElement.className = `p-3 rounded-lg text-sm transition-all duration-300 transform translate-x-0 opacity-100 ${
+            currentStatusElement.className = `p-3 rounded-lg text-sm transition-all duration-200 transform translate-x-0 opacity-100 ${
                 type === 'success' ? 'bg-green-500/90 border border-green-400/50 text-white' :
                 type === 'error' ? 'bg-red-500/90 border border-red-400/50 text-white' :
                 type === 'warning' ? 'bg-yellow-500/90 border border-yellow-400/50 text-white' :
@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         const statusEl = document.createElement('div');
-        statusEl.className = `p-3 rounded-lg text-sm transition-all duration-300 transform translate-x-full opacity-0 ${
+        statusEl.className = `p-3 rounded-lg text-sm transition-all duration-200 transform translate-x-full opacity-0 ${
             type === 'success' ? 'bg-green-500/90 border border-green-400/50 text-white' :
             type === 'error' ? 'bg-red-500/90 border border-red-400/50 text-white' :
             type === 'warning' ? 'bg-yellow-500/90 border border-yellow-400/50 text-white' :
@@ -326,8 +326,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     <h4 class="text-xl font-semibold mb-4 text-center">${testName} Sample Images</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         ${images.map((image, index) => `
-                            <div class="sample-image-card glass rounded-lg p-4 hover:bg-white/10 transition-all duration-300 cursor-pointer group" data-image-url="${image.url}" data-image-name="${image.name}" data-is-placeholder="${image.placeholder || false}">
-                                <div class="aspect-video bg-white/5 rounded-lg mb-3 flex items-center justify-center border-2 border-dashed border-white/20 group-hover:border-purple-400/50 transition-colors overflow-hidden">
+                            <div class="sample-image-card glass rounded-lg p-4 hover:bg-white/10 transition-all duration-200 cursor-pointer group" data-image-url="${image.url}" data-image-name="${image.name}" data-is-placeholder="${image.placeholder || false}">
+                                <div class="aspect-video bg-white/5 rounded-lg mb-3 flex items-center justify-center border-2 border-dashed border-white/20 group-hover:border-purple-400/50 transition-colors overflow-hidden">`
                                     ${image.placeholder ? `
                                         <div class="text-center">
                                             <svg class="w-8 h-8 text-white/40 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

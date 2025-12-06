@@ -10,7 +10,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .glass {
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(8px);
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
@@ -28,16 +28,16 @@
         
         /* Smooth transitions for better UX */
         .transition-all {
-            transition: all 0.3s ease;
+            transition: background-color 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
         }
         
-        /* Enhanced glass morphism */
+        /* Enhanced glass morphism - remove expensive backdrop-filter on hover */
         .glass:hover {
-            backdrop-filter: blur(15px);
             background: rgba(255, 255, 255, 0.15);
         }
         
-        /* Subtle animations */
+        /* Subtle animations - disabled for performance */
+        /*
         @keyframes float {
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-5px); }
@@ -46,8 +46,10 @@
         .float-animation {
             animation: float 3s ease-in-out infinite;
         }
+        */
         
-        /* Pulse effect for important elements */
+        /* Pulse effect for important elements - disabled for performance */
+        /*
         @keyframes pulse-glow {
             0%, 100% { box-shadow: 0 0 5px rgba(16, 185, 129, 0.4); }
             50% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.6); }
@@ -56,6 +58,7 @@
         .pulse-glow {
             animation: pulse-glow 2s ease-in-out infinite;
         }
+        */
         
         /* Improved loading state */
         .loading-shimmer {
@@ -112,8 +115,8 @@
                 
                 <!-- Feature highlights -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-4xl mx-auto">
-                    <div class="glass rounded-xl p-6 text-center hover:bg-white/5 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl group">
-                        <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-500/30 transition-colors">
+                    <div class="glass rounded-xl p-6 text-center hover:bg-white/5 transition-all duration-200 group">
+                        <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-500/30 transition-colors duration-200">
                             <svg class="w-6 h-6 text-blue-400 group-hover:text-blue-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
@@ -121,8 +124,8 @@
                         <h3 class="text-lg font-semibold mb-2 group-hover:text-green-300 transition-colors">Accurate Results</h3>
                         <p class="text-sm text-white/70 group-hover:text-white/90 transition-colors">AI-powered analysis with medical-grade precision</p>
                     </div>
-                    <div class="glass rounded-xl p-6 text-center hover:bg-white/5 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl group">
-                        <div class="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-green-500/30 transition-colors">
+                    <div class="glass rounded-xl p-6 text-center hover:bg-white/5 transition-all duration-200 group">
+                        <div class="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-green-500/30 transition-colors duration-200">
                             <svg class="w-6 h-6 text-green-400 group-hover:text-green-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                             </svg>
@@ -130,8 +133,8 @@
                         <h3 class="text-lg font-semibold mb-2 group-hover:text-green-300 transition-colors">Fast Processing</h3>
                         <p class="text-sm text-white/70 group-hover:text-white/90 transition-colors">Get results in seconds, not minutes</p>
                     </div>
-                    <div class="glass rounded-xl p-6 text-center hover:bg-white/5 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl group">
-                        <div class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-500/30 transition-colors">
+                    <div class="glass rounded-xl p-6 text-center hover:bg-white/5 transition-all duration-200 group">
+                        <div class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-500/30 transition-colors duration-200">
                             <svg class="w-6 h-6 text-purple-400 group-hover:text-purple-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
@@ -141,9 +144,9 @@
                     </div>
                 </div>
                 
-                <button id="startBtn" class="px-16 py-5 rounded-2xl bg-gradient-to-r from-[#0f9d58] to-[#138a4a] shadow-2xl text-xl font-semibold hover:scale-[1.02] hover:shadow-3xl transition-all duration-300 transform active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-green-500/50 group">
+                <button id="startBtn" class="px-16 py-5 rounded-2xl bg-gradient-to-r from-[#0f9d58] to-[#138a4a] shadow-2xl text-xl font-semibold hover:shadow-3xl transition-shadow duration-200 active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-green-500/50 group">
                     <span class="flex items-center gap-3">
-                        <svg class="w-6 h-6 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
                         Start Diagnosis
