@@ -24,6 +24,9 @@ document.addEventListener('DOMContentLoaded', function() {
     let url = null;
 
     // Utility functions for better UX
+    // Track current status element to reuse during analysis
+    let currentStatusElement = null;
+    
     function showStatus(message, type = 'info') {
         // Use global status container that's always visible
         const globalStatusContainer = document.getElementById('globalStatusMessages');
@@ -38,6 +41,19 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
+        // Reuse existing status element if available (prevents lag during analysis)
+        if (currentStatusElement && currentStatusElement.parentNode === statusContainer) {
+            // Update existing element
+            currentStatusElement.textContent = message;
+            currentStatusElement.className = `p-3 rounded-lg text-sm transition-all duration-300 transform translate-x-0 opacity-100 ${
+                type === 'success' ? 'bg-green-500/90 border border-green-400/50 text-white' :
+                type === 'error' ? 'bg-red-500/90 border border-red-400/50 text-white' :
+                type === 'warning' ? 'bg-yellow-500/90 border border-yellow-400/50 text-white' :
+                'bg-blue-500/90 border border-blue-400/50 text-white'
+            } backdrop-blur-sm shadow-lg`;
+            return;
+        }
+        
         const statusEl = document.createElement('div');
         statusEl.className = `p-3 rounded-lg text-sm transition-all duration-300 transform translate-x-full opacity-0 ${
             type === 'success' ? 'bg-green-500/90 border border-green-400/50 text-white' :
@@ -48,6 +64,7 @@ document.addEventListener('DOMContentLoaded', function() {
         statusEl.textContent = message;
         
         statusContainer.appendChild(statusEl);
+        currentStatusElement = statusEl;
         
         // Animate in
         setTimeout(() => {
@@ -59,7 +76,12 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             statusEl.classList.add('translate-x-full', 'opacity-0');
             statusEl.classList.remove('translate-x-0', 'opacity-100');
-            setTimeout(() => statusEl.remove(), 300);
+            setTimeout(() => {
+                statusEl.remove();
+                if (currentStatusElement === statusEl) {
+                    currentStatusElement = null;
+                }
+            }, 300);
         }, 5000);
     }
 
@@ -596,25 +618,12 @@ document.addEventListener('DOMContentLoaded', function() {
             return; 
         }
 
-        // Show loading state with enhanced feedback
+        // Show loading state with simple feedback (no progress updates to prevent lag)
         analyzeBtn.disabled = true;
         analyzeSpinner.classList.remove('hidden');
         analyzeIcon.style.display = 'none';
-        showStatus('🔄 Analyzing your image... This may take a few moments.', 'info');
-        
-        // Add progress indicator
-        let progressMessages = [
-            'Processing image...',
-            'Running AI analysis...',
-            'Generating results...'
-        ];
-        let progressIndex = 0;
-        const progressInterval = setInterval(() => {
-            if (progressIndex < progressMessages.length) {
-                showStatus(`🔄 ${progressMessages[progressIndex]}`, 'info');
-                progressIndex++;
-            }
-        }, 2000);
+        analyzeBtn.textContent = 'Analyzing...';
+        showStatus('🔄 Analyzing your image...', 'info');
 
         const form = new FormData();
         form.append('image', file);
@@ -624,7 +633,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const ENDPOINT = window.APP_CONFIG ? window.APP_CONFIG.apiUrl('analyze') : '/analyze';
 
         try{
-            clearInterval(progressInterval); // Clear progress messages
             const resp = await fetch(ENDPOINT, { 
                 method: 'POST', 
                 body: form,
@@ -662,7 +670,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 1000);
 
         }catch(err){
-            clearInterval(progressInterval); // Clear any remaining progress messages
             console.error('Analysis failed:', err);
             
             // Enhanced error handling with specific error types
@@ -698,10 +705,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 1000);
             }
         } finally {
-            clearInterval(progressInterval); // Clear any remaining progress interval
             analyzeSpinner.classList.add('hidden');
             analyzeBtn.disabled = false;
             analyzeIcon.style.display = '';
+            analyzeBtn.textContent = 'Start Diagnosis';
         }    });
 
     // Keyboard accessibility and shortcuts
