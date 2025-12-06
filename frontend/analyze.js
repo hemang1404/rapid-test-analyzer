@@ -236,6 +236,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Cache for generated content per test type
+    const sampleImagesCache = {};
+    
     function showSampleImagesModal() {
         console.log('showSampleImagesModal called');
         
@@ -255,6 +258,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 Array.from(document.querySelectorAll('[id*="sample"]')).map(el => el.id)
             );
             showStatus('❌ Sample images feature not available', 'error');
+            return;
+        }
+        
+        // Show modal immediately for better perceived performance
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        setTimeout(() => {
+            modalContent.classList.remove('scale-95', 'opacity-0');
+            modalContent.classList.add('scale-100', 'opacity-100');
+        }, 10);
+        
+        // Check if content is already cached
+        if (sampleImagesCache[selectedTest]) {
+            contentDiv.innerHTML = sampleImagesCache[selectedTest];
+            attachSampleImageListeners();
             return;
         }
         
@@ -281,7 +299,7 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         } else {
             const testName = selectedTest === 'ph' ? 'pH Strip' : selectedTest === 'fob' ? 'FOB Test' : selectedTest.toUpperCase();
-            contentDiv.innerHTML = `
+            const htmlContent = `
                 <div class="mb-6">
                     <h4 class="text-xl font-semibold mb-4 text-center">${testName} Sample Images</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -296,7 +314,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             <p class="text-xs text-white/60">Demo Image</p>
                                         </div>
                                     ` : `
-                                        <img src="${image.url}" alt="${image.name}" class="w-full h-full object-cover rounded" onload="this.classList.add('loaded')" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                        <img loading="lazy" src="${image.url}" alt="${image.name}" class="w-full h-full object-cover rounded" onload="this.classList.add('loaded')" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                                         <div class="text-center hidden">
                                             <svg class="w-8 h-8 text-white/40 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
@@ -315,8 +333,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
             
-            // Add click listeners to sample image cards
-            document.querySelectorAll('.sample-image-card').forEach(card => {
+            // Cache the content
+            sampleImagesCache[selectedTest] = htmlContent;
+            contentDiv.innerHTML = htmlContent;
+            
+            attachSampleImageListeners();
+        }
+    }
+    
+    // Separate function to attach listeners (can be reused)
+    function attachSampleImageListeners() {
+        // Add click listeners to sample image cards
+        document.querySelectorAll('.sample-image-card').forEach(card => {
                 card.addEventListener('click', function() {
                     const imageUrl = this.dataset.imageUrl;
                     const imageName = this.dataset.imageName;
@@ -349,14 +377,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
             });
-        }
-        
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        setTimeout(() => {
-            modalContent.classList.remove('scale-95', 'opacity-0');
-            modalContent.classList.add('scale-100', 'opacity-100');
-        }, 10);
     }
 
     function hideSampleImagesModal() {
