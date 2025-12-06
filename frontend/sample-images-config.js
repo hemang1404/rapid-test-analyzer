@@ -3,86 +3,86 @@ const sampleImagesConfig = {
     ph: [
         {
             name: "pH Test Sample 1",
-            url: "/static/sample-images/ph/test6.jpeg",
+            url: "/sample-images/ph/test6.jpeg",
             placeholder: false
         },
         {
             name: "pH Test Sample 2",
-            url: "/static/sample-images/ph/aman-test.jpeg",
+            url: "/sample-images/ph/aman-test.jpeg",
             placeholder: false
         },
         {
             name: "pH Test Sample 3",
-            url: "/static/sample-images/ph/test10.jpeg",
+            url: "/sample-images/ph/test10.jpeg",
             placeholder: false
         },
         {
             name: "pH Test Sample 4",
-            url: "/static/sample-images/ph/tes2.jpeg",
+            url: "/sample-images/ph/tes2.jpeg",
             placeholder: false
         },
         {
             name: "pH Test Sample 5",
-            url: "/static/sample-images/ph/test11.jpeg",
+            url: "/sample-images/ph/test11.jpeg",
             placeholder: false
         },
         {
             name: "pH Test Sample 6",
-            url: "/static/sample-images/ph/test3.jpeg",
+            url: "/sample-images/ph/test3.jpeg",
             placeholder: false
         },
         {
             name: "pH Test Sample 7",
-            url: "/static/sample-images/ph/test4.jpeg",
+            url: "/sample-images/ph/test4.jpeg",
             placeholder: false
         }
     ],
     fob: [
         {
             name: "FOB Test Sample",
-            url: "/static/sample-images/fob/real%20test.jpeg",
+            url: "/sample-images/fob/real%20test.jpeg",
             placeholder: false
         },
         {
             name: "FOB Test Sample 2",
-            url: "/static/sample-images/fob/real%20test-2.jpeg",
+            url: "/sample-images/fob/real%20test-2.jpeg",
             placeholder: false
         },
         {
             name: "FOB Test Sample 3",
-            url: "/static/sample-images/fob/real%20test-3.jpeg",
+            url: "/sample-images/fob/real%20test-3.jpeg",
             placeholder: false
         },
         {
             name: "FOB Positive Test",
-            url: "/static/sample-images/fob/real%20test%20positive.jpeg",
+            url: "/sample-images/fob/real%20test%20positive.jpeg",
             placeholder: false
         }
     ],
     urinalysis: [
         {
             name: "Urinalysis Sample 1",
-            url: "/static/sample-images/urinalysis/uri-test-1.jpeg",
+            url: "/sample-images/urinalysis/uri-test-1.jpeg",
             placeholder: false
         },
         {
             name: "Urinalysis Sample 2",
-            url: "/static/sample-images/urinalysis/uri-test-2.jpeg",
+            url: "/sample-images/urinalysis/uri-test-2.jpeg",
             placeholder: false
         },
         {
             name: "Urinalysis Sample 3",
-            url: "/static/sample-images/urinalysis/uri-test-3.jpeg",
+            url: "/sample-images/urinalysis/uri-test-3.jpeg",
             placeholder: false
         },
         {
             name: "Urinalysis Sample 4",
-            url: "/static/sample-images/urinalysis/uri-test-4.jpg",
+            url: "/sample-images/urinalysis/uri-test-4.jpg",
             placeholder: false
         },
         {
             name: "Urinalysis Sample 5",
-            url: "/static/sample-images/urinalysis/uri-test-5.jpg",
+            url: "/sample-images/urinalysis/uri-test-5.jpg",
             placeholder: false
         }
     ]
