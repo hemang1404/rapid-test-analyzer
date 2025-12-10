@@ -50,7 +50,7 @@ Visit your Netlify URL:
 ## 🔧 How It Works
 
 ```
-User visits: https://your-app.netlify.app
+User visits: https://rapid-test-analyzer.netlify.app
          ↓
 Netlify serves index.html instantly (< 1 second)
          ↓
