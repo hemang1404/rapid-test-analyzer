@@ -3,8 +3,12 @@ from werkzeug.utils import secure_filename
 import os
 import uuid
 import logging
+import json
+from datetime import datetime
 from config import get_config
 from utils import validate_image_quality, validate_file_extension, safe_file_cleanup, AnalysisValidator
+from models import db, User, Analysis
+from auth import generate_token, token_required, optional_token
 
 # Wrap imports in try-catch for better error handling
 try:
@@ -71,6 +75,28 @@ app = Flask(__name__, template_folder='templates', static_folder='static')
 # Load configuration based on environment
 env = os.environ.get("FLASK_ENV", "production")
 app.config.from_object(get_config(env))
+
+# Database configuration
+database_url = os.environ.get('DATABASE_URL')
+if database_url:
+    # Fix postgres:// to postgresql:// for SQLAlchemy
+    if database_url.startswith('postgres://'):
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+else:
+    # Use SQLite for development
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///rapidtest.db'
+
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+
+# Initialize database
+db.init_app(app)
+
+# Create database tables
+with app.app_context():
+    db.create_all()
+    print("✅ Database initialized")
 
 # Configure Flask for memory optimization
 UPLOAD_FOLDER = app.config['UPLOAD_FOLDER']
@@ -149,9 +175,162 @@ def after_request(response):
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
     return response
 
-# API endpoint for analysis
+# ============================================
+# AUTHENTICATION ROUTES
+# ============================================
+
+@app.route("/register", methods=["POST"])
+def register():
+    """
+    Register a new user account
+    
+    Request body:
+        {
+            "username": "string",
+            "email": "string",
+            "password": "string"
+        }
+    """
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        if not data or not data.get('username') or not data.get('email') or not data.get('password'):
+            return jsonify({'error': 'Username, email, and password are required'}), 400
+        
+        username = data['username'].strip()
+        email = data['email'].strip().lower()
+        password = data['password']
+        
+        # Validate inputs
+        if len(username) < 3:
+            return jsonify({'error': 'Username must be at least 3 characters'}), 400
+        
+        if len(password) < 6:
+            return jsonify({'error': 'Password must be at least 6 characters'}), 400
+        
+        if '@' not in email:
+            return jsonify({'error': 'Invalid email address'}), 400
+        
+        # Check if user already exists
+        if User.query.filter_by(email=email).first():
+            return jsonify({'error': 'Email already registered'}), 400
+        
+        if User.query.filter_by(username=username).first():
+            return jsonify({'error': 'Username already taken'}), 400
+        
+        # Create new user
+        user = User(username=username, email=email)
+        user.set_password(password)
+        
+        db.session.add(user)
+        db.session.commit()
+        
+        logger.info(f"New user registered: {username}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Registration successful',
+            'user': user.to_dict()
+        }), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Registration error: {str(e)}")
+        return jsonify({'error': 'Registration failed'}), 500
+
+@app.route("/login", methods=["POST"])
+def login():
+    """
+    Login user and return JWT token
+    
+    Request body:
+        {
+            "email": "string",
+            "password": "string"
+        }
+    """
+    try:
+        data = request.get_json()
+        
+        if not data or not data.get('email') or not data.get('password'):
+            return jsonify({'error': 'Email and password are required'}), 400
+        
+        email = data['email'].strip().lower()
+        password = data['password']
+        
+        # Find user
+        user = User.query.filter_by(email=email).first()
+        
+        if not user or not user.check_password(password):
+            return jsonify({'error': 'Invalid email or password'}), 401
+        
+        # Update last login
+        user.last_login = datetime.utcnow()
+        db.session.commit()
+        
+        # Generate JWT token
+        token = generate_token(user.id, user.username, user.email)
+        
+        logger.info(f"User logged in: {user.username}")
+        
+        return jsonify({
+            'success': True,
+            'token': token,
+            'user': user.to_dict()
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Login error: {str(e)}")
+        return jsonify({'error': 'Login failed'}), 500
+
+@app.route("/profile", methods=["GET"])
+@token_required
+def get_profile(current_user):
+    """Get current user's profile (protected route)"""
+    return jsonify({
+        'success': True,
+        'user': current_user.to_dict()
+    }), 200
+
+@app.route("/history", methods=["GET"])
+@token_required
+def get_history(current_user):
+    """
+    Get user's analysis history
+    Query params:
+        - limit: Number of results (default 50)
+        - test_type: Filter by test type (optional)
+    """
+    try:
+        limit = request.args.get('limit', 50, type=int)
+        test_type = request.args.get('test_type')
+        
+        query = Analysis.query.filter_by(user_id=current_user.id)
+        
+        if test_type:
+            query = query.filter_by(test_type=test_type)
+        
+        analyses = query.order_by(Analysis.created_at.desc()).limit(limit).all()
+        
+        return jsonify({
+            'success': True,
+            'count': len(analyses),
+            'analyses': [a.to_dict() for a in analyses]
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"History fetch error: {str(e)}")
+        return jsonify({'error': 'Failed to fetch history'}), 500
+
+# ============================================
+# ANALYSIS ROUTES
+# ============================================
+
+# API endpoint for analysis - now with optional authentication
 @app.route("/analyze", methods=["POST"])
-def analyze():
+@optional_token
+def analyze(current_user):
     """
     Analyze uploaded medical test image.
     
@@ -337,6 +516,29 @@ def analyze():
                 "result_images": result.get("result_images", []),
                 "analysis_id": analysis_id
             }
+
+        # Save analysis to database if user is authenticated
+        if current_user:
+            try:
+                analysis = Analysis(
+                    user_id=current_user.id,
+                    test_type=test_type,
+                    result=response.get('result') or response.get('diagnosis', ''),
+                    diagnosis=response.get('diagnosis', ''),
+                    image_path=image_path,
+                    confidence=response.get('confidence'),
+                    raw_data=json.dumps(response)
+                )
+                db.session.add(analysis)
+                db.session.commit()
+                response['saved'] = True
+                response['analysis_id'] = analysis.id
+                logger.info(f"Analysis saved to database for user {current_user.username}")
+            except Exception as e:
+                logger.error(f"Failed to save analysis to database: {str(e)}")
+                db.session.rollback()
+                # Don't fail the request if save fails
+                response['saved'] = False
 
         return jsonify(response)
 
