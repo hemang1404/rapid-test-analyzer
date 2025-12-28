@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Rapid Test Analyzer</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .glass {
+            backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-[#07361f] via-[#0b4d2f] to-[#064026] text-white">
+    
+    <!-- Status Messages -->
+    <div id="statusMessages" class="fixed top-4 right-4 z-50 space-y-2 max-w-sm"></div>
+    
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="glass rounded-2xl p-8 w-full max-w-md">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold mb-2">Create Account</h1>
+                <p class="text-white/70">Join to save your analysis history</p>
+            </div>
+            
+            <form id="registerForm" class="space-y-4">
+                <div>
+                    <label class="block mb-2 text-sm font-medium">Username</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        required
+                        minlength="3"
+                        autocomplete="username"
+                        class="w-full p-3 rounded-lg bg-white/10 border border-white/20 focus:border-green-400 focus:outline-none focus:ring-2 focus:ring-green-400/50 transition-all"
+                        placeholder="Choose a username"
+                    >
+                    <p class="text-xs text-white/50 mt-1">At least 3 characters</p>
+                </div>
+                
+                <div>
+                    <label class="block mb-2 text-sm font-medium">Email</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        required
+                        autocomplete="email"
+                        class="w-full p-3 rounded-lg bg-white/10 border border-white/20 focus:border-green-400 focus:outline-none focus:ring-2 focus:ring-green-400/50 transition-all"
+                        placeholder="your@email.com"
+                    >
+                </div>
+                
+                <div>
+                    <label class="block mb-2 text-sm font-medium">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        required
+                        minlength="6"
+                        autocomplete="new-password"
+                        class="w-full p-3 rounded-lg bg-white/10 border border-white/20 focus:border-green-400 focus:outline-none focus:ring-2 focus:ring-green-400/50 transition-all"
+                        placeholder="••••••••"
+                    >
+                    <p class="text-xs text-white/50 mt-1">At least 6 characters</p>
+                </div>
+                
+                <div>
+                    <label class="block mb-2 text-sm font-medium">Confirm Password</label>
+                    <input 
+                        type="password" 
+                        id="confirmPassword" 
+                        required
+                        minlength="6"
+                        autocomplete="new-password"
+                        class="w-full p-3 rounded-lg bg-white/10 border border-white/20 focus:border-green-400 focus:outline-none focus:ring-2 focus:ring-green-400/50 transition-all"
+                        placeholder="••••••••"
+                    >
+                </div>
+                
+                <button 
+                    type="submit" 
+                    id="registerBtn"
+                    class="w-full py-3 rounded-lg bg-gradient-to-r from-[#0f9d58] to-[#138a4a] hover:shadow-lg transition-all duration-200 font-semibold">
+                    <span id="registerText">Create Account</span>
+                    <span id="registerSpinner" class="hidden">
+                        <svg class="animate-spin h-5 w-5 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Creating account...
+                    </span>
+                </button>
+            </form>
+            
+            <div class="mt-6 text-center">
+                <p class="text-sm text-white/70">
+                    Already have an account? 
+                    <a href="login.html" class="text-green-400 hover:text-green-300 font-medium">Login</a>
+                </p>
+            </div>
+            
+            <div class="mt-4 text-center">
+                <a href="app.html" class="text-sm text-white/50 hover:text-white/70">
+                    ← Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <script src="config.js"></script>
+    <script>
+        function showStatus(message, type = 'info') {
+            const container = document.getElementById('statusMessages');
+            const statusEl = document.createElement('div');
+            statusEl.className = `p-3 rounded-lg text-sm transition-all duration-200 transform translate-x-full opacity-0 ${
+                type === 'success' ? 'bg-green-500/90 border border-green-400/50' :
+                type === 'error' ? 'bg-red-500/90 border border-red-400/50' :
+                type === 'warning' ? 'bg-yellow-500/90 border border-yellow-400/50' :
+                'bg-blue-500/90 border border-blue-400/50'
+            } backdrop-blur-sm shadow-lg`;
+            statusEl.textContent = message;
+            
+            container.appendChild(statusEl);
+            setTimeout(() => {
+                statusEl.classList.remove('translate-x-full', 'opacity-0');
+                statusEl.classList.add('translate-x-0', 'opacity-100');
+            }, 10);
+            
+            setTimeout(() => {
+                statusEl.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => statusEl.remove(), 300);
+            }, 5000);
+        }
+        
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const registerBtn = document.getElementById('registerBtn');
+            const registerText = document.getElementById('registerText');
+            const registerSpinner = document.getElementById('registerSpinner');
+            
+            // Validate passwords match
+            if (password !== confirmPassword) {
+                showStatus('❌ Passwords do not match', 'error');
+                return;
+            }
+            
+            // Show loading state
+            registerBtn.disabled = true;
+            registerText.classList.add('hidden');
+            registerSpinner.classList.remove('hidden');
+            
+            try {
+                const response = await fetch(window.APP_CONFIG.apiUrl('register'), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    showStatus('✅ Registration successful! Please login.', 'success');
+                    
+                    // Redirect to login page
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 1500);
+                } else {
+                    showStatus('❌ ' + (data.error || 'Registration failed'), 'error');
+                    registerBtn.disabled = false;
+                    registerText.classList.remove('hidden');
+                    registerSpinner.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showStatus('❌ Connection error. Please try again.', 'error');
+                registerBtn.disabled = false;
+                registerText.classList.remove('hidden');
+                registerSpinner.classList.add('hidden');
+            }
+        });
+        
+        // Check if already logged in
+        if (localStorage.getItem('auth_token')) {
+            window.location.href = 'app.html';
+        }
+    </script>
+</body>
+</html>
