@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis History - Rapid Test Analyzer</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .glass {
+            backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-[#07361f] via-[#0b4d2f] to-[#064026] text-white">
+    
+    <!-- Status Messages -->
+    <div id="statusMessages" class="fixed top-4 right-4 z-50 space-y-2 max-w-sm"></div>
+    
+    <!-- Header -->
+    <header class="glass sticky top-0 z-10">
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <h1 class="text-2xl font-bold">Analysis History</h1>
+            <div class="flex items-center gap-4">
+                <span class="text-sm text-white/70">👤 <span id="username"></span></span>
+                <button id="logoutBtn" class="px-4 py-2 rounded-lg glass hover:bg-white/20 transition-colors text-sm">
+                    Logout
+                </button>
+                <a href="app.html" class="px-4 py-2 rounded-lg bg-green-500 hover:bg-green-600 transition-colors text-sm font-medium">
+                    New Analysis
+                </a>
+            </div>
+        </div>
+    </header>
+    
+    <main class="container mx-auto px-4 py-8">
+        <!-- Filter Options -->
+        <div class="mb-6 flex flex-wrap gap-4">
+            <button class="filter-btn active px-4 py-2 rounded-lg glass hover:bg-white/20 transition-colors" data-filter="all">
+                All Tests
+            </button>
+            <button class="filter-btn px-4 py-2 rounded-lg glass hover:bg-white/20 transition-colors" data-filter="ph">
+                pH Tests
+            </button>
+            <button class="filter-btn px-4 py-2 rounded-lg glass hover:bg-white/20 transition-colors" data-filter="fob">
+                FOB Tests
+            </button>
+            <button class="filter-btn px-4 py-2 rounded-lg glass hover:bg-white/20 transition-colors" data-filter="urinalysis">
+                Urinalysis Tests
+            </button>
+        </div>
+        
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-12">
+            <svg class="animate-spin h-12 w-12 mx-auto mb-4 text-green-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="text-white/70">Loading your analysis history...</p>
+        </div>
+        
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden text-center py-12">
+            <div class="glass rounded-2xl p-12 max-w-md mx-auto">
+                <svg class="w-20 h-20 mx-auto mb-4 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <h2 class="text-2xl font-bold mb-2">No Analyses Yet</h2>
+                <p class="text-white/70 mb-6">Start analyzing tests to build your history</p>
+                <a href="app.html" class="inline-block px-6 py-3 rounded-lg bg-green-500 hover:bg-green-600 transition-colors font-medium">
+                    Start New Analysis
+                </a>
+            </div>
+        </div>
+        
+        <!-- History Container -->
+        <div id="historyContainer" class="hidden grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <!-- History items will be inserted here -->
+        </div>
+    </main>
+    
+    <script src="config.js"></script>
+    <script>
+        let allAnalyses = [];
+        let currentFilter = 'all';
+        
+        function showStatus(message, type = 'info') {
+            const container = document.getElementById('statusMessages');
+            const statusEl = document.createElement('div');
+            statusEl.className = `p-3 rounded-lg text-sm transition-all duration-200 transform translate-x-full opacity-0 ${
+                type === 'success' ? 'bg-green-500/90 border border-green-400/50' :
+                type === 'error' ? 'bg-red-500/90 border border-red-400/50' :
+                type === 'warning' ? 'bg-yellow-500/90 border border-yellow-400/50' :
+                'bg-blue-500/90 border border-blue-400/50'
+            } backdrop-blur-sm shadow-lg`;
+            statusEl.textContent = message;
+            
+            container.appendChild(statusEl);
+            setTimeout(() => {
+                statusEl.classList.remove('translate-x-full', 'opacity-0');
+                statusEl.classList.add('translate-x-0', 'opacity-100');
+            }, 10);
+            
+            setTimeout(() => {
+                statusEl.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => statusEl.remove(), 300);
+            }, 5000);
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        function getTestIcon(testType) {
+            const icons = {
+                ph: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>',
+                fob: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>',
+                urinalysis: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>'
+            };
+            return icons[testType] || icons.ph;
+        }
+        
+        function renderHistory() {
+            const container = document.getElementById('historyContainer');
+            const filtered = currentFilter === 'all' 
+                ? allAnalyses 
+                : allAnalyses.filter(a => a.test_type === currentFilter);
+            
+            if (filtered.length === 0) {
+                container.classList.add('hidden');
+                document.getElementById('emptyState').classList.remove('hidden');
+                return;
+            }
+            
+            document.getElementById('emptyState').classList.add('hidden');
+            container.classList.remove('hidden');
+            
+            container.innerHTML = filtered.map(analysis => `
+                <div class="glass rounded-xl p-6 hover:bg-white/15 transition-all duration-200">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
+                                <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    ${getTestIcon(analysis.test_type)}
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-lg">${analysis.test_type.toUpperCase()} Test</h3>
+                                <p class="text-xs text-white/50">${formatDate(analysis.created_at)}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <p class="text-sm text-white/80">${analysis.result || analysis.diagnosis || 'No result available'}</p>
+                        ${analysis.confidence ? `<p class="text-xs text-white/60">Confidence: ${(analysis.confidence * 100).toFixed(1)}%</p>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function loadHistory() {
+            const token = localStorage.getItem('auth_token');
+            
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            try {
+                const response = await fetch(window.APP_CONFIG.apiUrl('history'), {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.status === 401) {
+                    showStatus('❌ Session expired. Please login again.', 'error');
+                    localStorage.clear();
+                    setTimeout(() => window.location.href = 'login.html', 2000);
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    allAnalyses = data.analyses;
+                    document.getElementById('loadingState').classList.add('hidden');
+                    renderHistory();
+                } else {
+                    throw new Error(data.error || 'Failed to load history');
+                }
+            } catch (error) {
+                console.error('Error loading history:', error);
+                document.getElementById('loadingState').classList.add('hidden');
+                showStatus('❌ Failed to load history', 'error');
+            }
+        }
+        
+        // Set username
+        const username = localStorage.getItem('username');
+        if (username) {
+            document.getElementById('username').textContent = username;
+        }
+        
+        // Logout button
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.clear();
+            showStatus('✅ Logged out successfully', 'success');
+            setTimeout(() => window.location.href = 'login.html', 1000);
+        });
+        
+        // Filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active', 'bg-white/20'));
+                this.classList.add('active', 'bg-white/20');
+                currentFilter = this.dataset.filter;
+                renderHistory();
+            });
+        });
+        
+        // Load history on page load
+        loadHistory();
+    </script>
+</body>
+</html>
