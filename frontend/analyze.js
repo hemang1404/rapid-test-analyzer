@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
         menu.classList.toggle('hidden');
     });
 
-    // Login button - show under development popup (simplified and more robust)
+    // Login button - redirect to login page
     function setupLoginButton() {
         const loginBtn = document.querySelector('[data-feature="login"]');
         if (loginBtn) {
@@ -126,18 +126,46 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleLoginClick(e) {
         e.preventDefault();
         e.stopPropagation();
-        showStatus('🚧 Login feature is under development and will be available in a future update.', 'warning');
-        // Also close the hamburger menu
+        
+        // Check if user is already logged in
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+            // Already logged in, go to profile/history
+            window.location.href = 'history.html';
+        } else {
+            // Not logged in, go to login page
+            window.location.href = 'login.html';
+        }
+        
+        // Close the hamburger menu
         const hamburgerMenu = document.getElementById('hamburgerMenu');
         if (hamburgerMenu) {
             hamburgerMenu.classList.add('hidden');
         }
     }
     
+    // Update login button text based on auth status
+    function updateLoginButton() {
+        const loginBtn = document.querySelector('[data-feature="login"]');
+        const token = localStorage.getItem('auth_token');
+        const username = localStorage.getItem('username');
+        
+        if (loginBtn && token) {
+            loginBtn.innerHTML = `<svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>${username || 'Profile'}`;
+        }
+    }
+    
     // Try multiple approaches to ensure the login button works
     setupLoginButton(); // Try immediately
-    setTimeout(setupLoginButton, 100); // Try after 100ms
-    document.addEventListener('DOMContentLoaded', setupLoginButton); // Try when DOM is ready
+    updateLoginButton(); // Update button text
+    setTimeout(() => {
+        setupLoginButton();
+        updateLoginButton();
+    }, 100); // Try after 100ms
+    document.addEventListener('DOMContentLoaded', () => {
+        setupLoginButton();
+        updateLoginButton();
+    }); // Try when DOM is ready
     
     // Event delegation as a failsafe - this will work even if other methods fail
     document.addEventListener('click', function(e) {
@@ -631,11 +659,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Use backend URL from config (supports separate frontend/backend deployment)
         const ENDPOINT = window.APP_CONFIG ? window.APP_CONFIG.apiUrl('analyze') : '/analyze';
+        
+        // Prepare headers with auth token if available
+        const headers = {};
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
 
         try{
             const resp = await fetch(ENDPOINT, { 
                 method: 'POST', 
                 body: form,
+                headers: headers,
                 // Add timeout handling
                 signal: AbortSignal.timeout(30000) // 30 second timeout
             });
