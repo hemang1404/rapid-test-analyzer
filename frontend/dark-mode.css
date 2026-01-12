@@ -1,0 +1,312 @@
+/**
+ * Dark Mode Styles for Rapid Test Analyzer
+ * Comprehensive dark theme with smooth transitions
+ */
+
+/* Root variables for easy theming */
+:root {
+    --bg-gradient-start: #07361f;
+    --bg-gradient-mid: #0b4d2f;
+    --bg-gradient-end: #064026;
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.7);
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --card-bg: rgba(255, 255, 255, 0.95);
+    --card-text: #1e293b;
+}
+
+.dark {
+    --bg-gradient-start: #0f172a;
+    --bg-gradient-mid: #1e293b;
+    --bg-gradient-end: #334155;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --glass-bg: rgba(15, 23, 42, 0.6);
+    --glass-border: rgba(148, 163, 184, 0.2);
+    --card-bg: #1e293b;
+    --card-text: #f1f5f9;
+}
+
+/* Smooth transitions for theme changes */
+body,
+.glass,
+.medical-report,
+.card {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Dark mode background */
+.dark body {
+    background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-mid) 50%, var(--bg-gradient-end) 100%);
+}
+
+/* Dark mode glass morphism */
+.dark .glass {
+    backdrop-filter: blur(12px);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+}
+
+.dark .glass:hover {
+    background: rgba(30, 41, 59, 0.7);
+}
+
+/* Dark mode medical report */
+.dark .medical-report {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    color: #f1f5f9;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.dark .medical-header {
+    background: linear-gradient(135deg, #0f766e 0%, #047857 100%);
+}
+
+/* Dark mode cards and containers */
+.dark .bg-white,
+.dark [class*="bg-white"] {
+    background-color: #1e293b !important;
+    color: #f1f5f9;
+}
+
+.dark .bg-gray-50 {
+    background-color: #334155 !important;
+}
+
+.dark .bg-gray-100 {
+    background-color: #475569 !important;
+}
+
+/* Dark mode text colors */
+.dark .text-gray-600 {
+    color: #cbd5e1 !important;
+}
+
+.dark .text-gray-700 {
+    color: #e2e8f0 !important;
+}
+
+.dark .text-gray-800 {
+    color: #f1f5f9 !important;
+}
+
+.dark .text-gray-900 {
+    color: #f8fafc !important;
+}
+
+.dark .text-slate-600 {
+    color: #cbd5e1 !important;
+}
+
+.dark .text-slate-700 {
+    color: #e2e8f0 !important;
+}
+
+.dark .text-slate-800 {
+    color: #f1f5f9 !important;
+}
+
+/* Dark mode borders */
+.dark .border-gray-200,
+.dark .border-gray-300 {
+    border-color: #475569 !important;
+}
+
+.dark .border-white {
+    border-color: rgba(148, 163, 184, 0.3) !important;
+}
+
+/* Dark mode table styling */
+.dark table {
+    border-color: #475569;
+}
+
+.dark table thead {
+    background-color: #334155;
+}
+
+.dark table tbody tr {
+    border-color: #475569;
+}
+
+.dark table tbody tr:hover {
+    background-color: #334155;
+}
+
+/* Dark mode inputs */
+.dark input,
+.dark textarea,
+.dark select {
+    background-color: #334155;
+    border-color: #475569;
+    color: #f1f5f9;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+    color: #94a3b8;
+}
+
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+    border-color: #10b981;
+    background-color: #1e293b;
+}
+
+/* Dark mode buttons - preserve button colors but adjust for visibility */
+.dark button:not(.bg-green-500):not(.bg-green-600):not(.bg-blue-500):not(.bg-blue-600):not(.bg-red-500):not([class*="bg-green"]):not([class*="bg-blue"]):not([class*="bg-red"]) {
+    background-color: #334155;
+    color: #f1f5f9;
+}
+
+.dark button:not(.bg-green-500):not(.bg-green-600):not(.bg-blue-500):not(.bg-blue-600):not(.bg-red-500):not([class*="bg-green"]):not([class*="bg-blue"]):not([class*="bg-red"]):hover {
+    background-color: #475569;
+}
+
+/* Dark mode status messages */
+.dark .bg-green-500 {
+    background-color: #059669 !important;
+}
+
+.dark .bg-blue-500 {
+    background-color: #0284c7 !important;
+}
+
+.dark .bg-red-500 {
+    background-color: #dc2626 !important;
+}
+
+.dark .bg-yellow-500 {
+    background-color: #d97706 !important;
+}
+
+/* Dark mode shadows */
+.dark .shadow-lg,
+.dark .shadow-xl,
+.dark .shadow-2xl {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+}
+
+/* Dark mode modal */
+.dark #testModal {
+    background-color: rgba(15, 23, 42, 0.9);
+}
+
+.dark #testModalContent {
+    background: #1e293b;
+    border-color: #475569;
+}
+
+/* Dark mode preview box */
+.dark #previewBox {
+    background-color: #334155;
+    border-color: #475569;
+}
+
+/* Dark mode scrollbar (webkit browsers) */
+.dark ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+.dark ::-webkit-scrollbar-track {
+    background: #1e293b;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background: #475569;
+    border-radius: 6px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+}
+
+/* Dark mode result badges - keep medical colors but adjust contrast */
+.dark .result-badge {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+/* Dark mode abnormal/warning badges */
+.dark .bg-red-100 {
+    background-color: #7f1d1d !important;
+}
+
+.dark .bg-yellow-100 {
+    background-color: #78350f !important;
+}
+
+.dark .bg-green-100 {
+    background-color: #064e3b !important;
+}
+
+.dark .text-red-800 {
+    color: #fca5a5 !important;
+}
+
+.dark .text-yellow-800 {
+    color: #fcd34d !important;
+}
+
+.dark .text-green-800 {
+    color: #86efac !important;
+}
+
+/* Dark mode toggle button styling */
+.dark-mode-toggle {
+    cursor: pointer;
+    user-select: none;
+}
+
+.dark-mode-toggle:active {
+    transform: scale(0.95);
+}
+
+/* Dark mode for loading states */
+.dark .loading-shimmer {
+    background: linear-gradient(90deg, rgba(71, 85, 105, 0.3) 25%, rgba(71, 85, 105, 0.5) 50%, rgba(71, 85, 105, 0.3) 75%);
+}
+
+/* Dark mode for sample images section */
+.dark .sample-image-card {
+    background-color: #334155;
+    border-color: #475569;
+}
+
+.dark .sample-image-card:hover {
+    background-color: #475569;
+    border-color: #64748b;
+}
+
+/* Print styles - always use light mode */
+@media print {
+    .dark body {
+        background: white !important;
+    }
+    
+    .dark .medical-report {
+        background: white !important;
+        color: #1e293b !important;
+        border: 1px solid #000 !important;
+    }
+    
+    .dark table,
+    .dark table thead,
+    .dark table tbody tr {
+        background: white !important;
+        color: #1e293b !important;
+    }
+}
+
+/* Accessibility - respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    body,
+    .glass,
+    .medical-report,
+    .card,
+    .dark-mode-toggle {
+        transition: none !important;
+    }
+}
