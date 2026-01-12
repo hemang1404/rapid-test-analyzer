@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verification - Rapid Test Analyzer</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="dark-mode.css">
+    <script src="dark-mode.js"></script>
+    <style>
+        .glass {
+            backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-[#07361f] via-[#0b4d2f] to-[#064026] text-white">
+    
+    <!-- Dark Mode Toggle -->
+    <div class="fixed top-4 right-4 z-50">
+        <!-- Dark mode toggle will be auto-injected here by dark-mode.js -->
+    </div>
+    
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="glass rounded-2xl p-8 w-full max-w-md">
+            
+            <!-- Loading State -->
+            <div id="loadingState" class="text-center">
+                <svg class="animate-spin h-12 w-12 mx-auto mb-4 text-green-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <h2 class="text-2xl font-bold mb-2">Verifying Your Email</h2>
+                <p class="text-white/70">Please wait while we verify your email address...</p>
+            </div>
+            
+            <!-- Success State -->
+            <div id="successState" class="hidden text-center">
+                <div class="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-10 h-10 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-bold mb-2">Email Verified!</h2>
+                <p class="text-white/70 mb-6">Your email has been successfully verified. You can now login to your account.</p>
+                <a href="login.html" class="inline-block px-6 py-3 rounded-lg bg-gradient-to-r from-[#0f9d58] to-[#138a4a] hover:shadow-lg transition-all duration-200 font-semibold">
+                    Go to Login
+                </a>
+            </div>
+            
+            <!-- Already Verified State -->
+            <div id="alreadyVerifiedState" class="hidden text-center">
+                <div class="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-10 h-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-bold mb-2">Already Verified</h2>
+                <p class="text-white/70 mb-6">Your email is already verified. You can login to your account.</p>
+                <a href="login.html" class="inline-block px-6 py-3 rounded-lg bg-gradient-to-r from-[#0f9d58] to-[#138a4a] hover:shadow-lg transition-all duration-200 font-semibold">
+                    Go to Login
+                </a>
+            </div>
+            
+            <!-- Error State -->
+            <div id="errorState" class="hidden text-center">
+                <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-10 h-10 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-bold mb-2">Verification Failed</h2>
+                <p class="text-white/70 mb-6" id="errorMessage">Invalid or expired verification link.</p>
+                <a href="register.html" class="inline-block px-6 py-3 rounded-lg bg-gradient-to-r from-[#0f9d58] to-[#138a4a] hover:shadow-lg transition-all duration-200 font-semibold">
+                    Register Again
+                </a>
+            </div>
+            
+        </div>
+    </div>
+    
+    <script src="config.js"></script>
+    <script>
+        // Get token from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        
+        if (!token) {
+            // No token provided
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('errorState').classList.remove('hidden');
+            document.getElementById('errorMessage').textContent = 'No verification token provided.';
+        } else {
+            // Verify the token
+            verifyEmail(token);
+        }
+        
+        async function verifyEmail(token) {
+            try {
+                const response = await fetch(window.APP_CONFIG.apiUrl(`verify-email/${token}`), {
+                    method: 'GET'
+                });
+                
+                const data = await response.json();
+                
+                document.getElementById('loadingState').classList.add('hidden');
+                
+                if (response.ok && data.success) {
+                    if (data.already_verified) {
+                        document.getElementById('alreadyVerifiedState').classList.remove('hidden');
+                    } else {
+                        document.getElementById('successState').classList.remove('hidden');
+                    }
+                } else {
+                    document.getElementById('errorState').classList.remove('hidden');
+                    document.getElementById('errorMessage').textContent = data.error || 'Verification failed.';
+                }
+            } catch (error) {
+                console.error('Verification error:', error);
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('errorState').classList.remove('hidden');
+                document.getElementById('errorMessage').textContent = 'Network error. Please try again.';
+            }
+        }
+    </script>
+</body>
+</html>
