@@ -149,9 +149,32 @@ document.addEventListener('DOMContentLoaded', function() {
         const loginBtn = document.querySelector('[data-feature="login"]');
         const token = localStorage.getItem('auth_token');
         const username = localStorage.getItem('username');
+        const hamburgerMenu = document.getElementById('hamburgerMenu');
         
-        if (loginBtn && token) {
-            loginBtn.innerHTML = `<svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>${username || 'Profile'}`;
+        if (loginBtn && token && username) {
+            // User is logged in - update button and add menu items
+            loginBtn.innerHTML = `<svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>${username}`;
+            
+            // Add settings and history links if not already present
+            if (hamburgerMenu && !document.getElementById('settingsLink')) {
+                const menuContainer = hamburgerMenu.querySelector('.p-2');
+                
+                // Add History link
+                const historyLink = document.createElement('a');
+                historyLink.id = 'historyLink';
+                historyLink.href = 'history.html';
+                historyLink.className = 'block w-full text-left px-4 py-2 rounded-md hover:bg-white/10 transition-colors';
+                historyLink.innerHTML = '📊 History';
+                menuContainer.appendChild(historyLink);
+                
+                // Add Settings link
+                const settingsLink = document.createElement('a');
+                settingsLink.id = 'settingsLink';
+                settingsLink.href = 'settings.html';
+                settingsLink.className = 'block w-full text-left px-4 py-2 rounded-md hover:bg-white/10 transition-colors';
+                settingsLink.innerHTML = '⚙️ Settings';
+                menuContainer.appendChild(settingsLink);
+            }
         }
     }
     
