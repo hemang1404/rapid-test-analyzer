@@ -7,6 +7,8 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="dark-mode.css">
+    <script src="dark-mode.js"></script>
     <style>
         .glass {
             backdrop-filter: blur(8px);
@@ -25,6 +27,7 @@
         <div class="container mx-auto px-4 py-4 flex items-center justify-between">
             <h1 class="text-2xl font-bold">Analysis History</h1>
             <div class="flex items-center gap-4">
+                <!-- Dark mode toggle will be auto-injected here by dark-mode.js -->
                 <span class="text-sm text-white/70">👤 <span id="username"></span></span>
                 <button id="logoutBtn" class="px-4 py-2 rounded-lg glass hover:bg-white/20 transition-colors text-sm">
                     Logout

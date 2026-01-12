@@ -7,6 +7,8 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="dark-mode.css">
+    <script src="dark-mode.js"></script>
     <style>
         .glass {
             backdrop-filter: blur(8px);
@@ -17,8 +19,13 @@
 </head>
 <body class="min-h-screen bg-gradient-to-br from-[#07361f] via-[#0b4d2f] to-[#064026] text-white">
     
+    <!-- Dark Mode Toggle -->
+    <div class="fixed top-4 right-4 z-50">
+        <!-- Dark mode toggle will be auto-injected here by dark-mode.js -->
+    </div>
+    
     <!-- Status Messages -->
-    <div id="statusMessages" class="fixed top-4 right-4 z-50 space-y-2 max-w-sm"></div>
+    <div id="statusMessages" class="fixed top-4 right-20 z-50 space-y-2 max-w-sm"></div>
     
     <div class="min-h-screen flex items-center justify-center p-4">
         <div class="glass rounded-2xl p-8 w-full max-w-md">

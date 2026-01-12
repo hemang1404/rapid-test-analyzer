@@ -8,6 +8,8 @@
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="dark-mode.css">
+    <script src="dark-mode.js"></script>
     <style>
         .glass {
             backdrop-filter: blur(8px);
@@ -78,6 +80,11 @@
     <!-- Global Status Messages Container (Always visible) -->
     <div id="globalStatusMessages" class="fixed top-4 right-4 z-50 space-y-2 max-w-sm"></div>
     
+    <!-- Top Action Buttons (Top Right) -->
+    <div class="fixed top-4 right-4 z-50 flex items-center gap-2">
+        <!-- Dark mode toggle will be auto-injected here by dark-mode.js -->
+    </div>
+
     <!-- Hamburger Menu Button (Top Left) -->
     <div class="fixed top-4 left-4 z-50">
         <button id="hamburgerBtn" class="p-3 rounded-full glass hover:bg-white/10 transition-colors w-12 h-12 flex items-center justify-center">

@@ -9,6 +9,8 @@
 <link rel="icon" href="favicon.ico" type="image/x-icon">
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 <script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="dark-mode.css">
+<script src="dark-mode.js"></script>
 <style>
     .glass {
         backdrop-filter: blur(10px);
@@ -53,6 +55,7 @@
     </div>
     <div class="mt-6 text-center no-print">
         <div class="flex justify-center gap-4">
+            <!-- Dark mode toggle will be auto-injected here by dark-mode.js -->
             <button id="newAnalysisBtn" class="px-6 py-3 rounded-lg bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white font-medium shadow-lg transition-all duration-200">
                 <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
