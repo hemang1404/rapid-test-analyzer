@@ -81,6 +81,18 @@
                 </p>
             </div>
             
+            <!-- Resend Verification Link (hidden by default) -->
+            <div id="resendVerification" class="mt-4 hidden">
+                <div class="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                    <p class="text-sm text-white/90 mb-3">
+                        📧 Email not verified? 
+                        <button id="resendBtn" class="text-yellow-400 hover:text-yellow-300 font-medium underline">
+                            Resend verification email
+                        </button>
+                    </p>
+                </div>
+            </div>
+            
             <div class="mt-4 text-center">
                 <a href="app.html" class="text-sm text-white/50 hover:text-white/70">
                     ← Back to Home
@@ -150,6 +162,14 @@
                     setTimeout(() => {
                         window.location.href = 'app.html';
                     }, 1000);
+                } else if (response.status === 403 && data.email_verified === false) {
+                    // Email not verified
+                    showStatus('⚠️ ' + (data.message || 'Email not verified'), 'warning');
+                    document.getElementById('resendVerification').classList.remove('hidden');
+                    
+                    loginBtn.disabled = false;
+                    loginText.classList.remove('hidden');
+                    loginSpinner.classList.add('hidden');
                 } else {
                     showStatus('❌ ' + (data.error || 'Login failed'), 'error');
                     loginBtn.disabled = false;
@@ -169,6 +189,55 @@
         if (localStorage.getItem('auth_token')) {
             window.location.href = 'app.html';
         }
+        
+        // Check if redirected after registration
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('registered') === 'true') {
+            showStatus('📧 Registration successful! Please check your email to verify your account before logging in.', 'warning');
+        }
+        
+        // Resend verification button
+        document.getElementById('resendBtn')?.addEventListener('click', async () => {
+            const email = document.getElementById('email').value.trim();
+            
+            if (!email) {
+                showStatus('⚠️ Please enter your email address', 'warning');
+                return;
+            }
+            
+            const resendBtn = document.getElementById('resendBtn');
+            const originalText = resendBtn.textContent;
+            resendBtn.disabled = true;
+            resendBtn.textContent = 'Sending...';
+            
+            try {
+                const response = await fetch(window.APP_CONFIG.apiUrl('resend-verification'), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    showStatus('✅ Verification email sent! Check your inbox.', 'success');
+                    
+                    // Show verification token in console for testing (remove in production)
+                    if (data.verification_token) {
+                        console.log('Verification token:', data.verification_token);
+                        console.log('Verification URL:', `${window.location.origin}/verify-email.html?token=${data.verification_token}`);
+                    }
+                } else {
+                    showStatus('ℹ️ ' + (data.message || 'Verification email sent'), 'info');
+                }
+            } catch (error) {
+                console.error('Resend error:', error);
+                showStatus('❌ Failed to resend email', 'error');
+            } finally {
+                resendBtn.disabled = false;
+                resendBtn.textContent = originalText;
+            }
+        });
     </script>
 </body>
 </html>

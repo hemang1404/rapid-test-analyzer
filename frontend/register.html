@@ -175,12 +175,18 @@
                 const data = await response.json();
                 
                 if (response.ok && data.success) {
-                    showStatus('✅ Registration successful! Please login.', 'success');
+                    showStatus('✅ Registration successful! Check your email for verification link.', 'success');
                     
-                    // Redirect to login page
+                    // Show verification token in console for testing (remove in production)
+                    if (data.verification_token) {
+                        console.log('Verification token:', data.verification_token);
+                        console.log('Verification URL:', `${window.location.origin}/verify-email.html?token=${data.verification_token}`);
+                    }
+                    
+                    // Redirect to a verification pending page or login
                     setTimeout(() => {
-                        window.location.href = 'login.html';
-                    }, 1500);
+                        window.location.href = 'login.html?registered=true';
+                    }, 2000);
                 } else {
                     showStatus('❌ ' + (data.error || 'Registration failed'), 'error');
                     registerBtn.disabled = false;
