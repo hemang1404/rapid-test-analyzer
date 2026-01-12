@@ -222,16 +222,22 @@ def register():
         # Create new user
         user = User(username=username, email=email)
         user.set_password(password)
+        verification_token = user.generate_verification_token()
         
         db.session.add(user)
         db.session.commit()
         
         logger.info(f"New user registered: {username}")
         
+        # TODO: Send verification email with token
+        # For now, we'll include the token in the response for testing
+        # In production, this should be sent via email
+        
         return jsonify({
             'success': True,
-            'message': 'Registration successful',
-            'user': user.to_dict()
+            'message': 'Registration successful. Please verify your email to login.',
+            'user': user.to_dict(),
+            'verification_token': verification_token  # Remove this in production
         }), 201
         
     except Exception as e:
@@ -265,6 +271,14 @@ def login():
         if not user or not user.check_password(password):
             return jsonify({'error': 'Invalid email or password'}), 401
         
+        # Check if email is verified
+        if not user.email_verified:
+            return jsonify({
+                'error': 'Email not verified',
+                'message': 'Please verify your email before logging in. Check your inbox for the verification link.',
+                'email_verified': False
+            }), 403
+        
         # Update last login
         user.last_login = datetime.utcnow()
         db.session.commit()
@@ -283,6 +297,104 @@ def login():
     except Exception as e:
         logger.error(f"Login error: {str(e)}")
         return jsonify({'error': 'Login failed'}), 500
+
+@app.route("/verify-email/<token>", methods=["GET"])
+def verify_email(token):
+    """
+    Verify user's email with the provided token
+    
+    URL Parameters:
+        token: Verification token sent to user's email
+    """
+    try:
+        # Find user with this verification token
+        user = User.query.filter_by(verification_token=token).first()
+        
+        if not user:
+            return jsonify({
+                'error': 'Invalid or expired verification token',
+                'success': False
+            }), 400
+        
+        # Check if already verified
+        if user.email_verified:
+            return jsonify({
+                'success': True,
+                'message': 'Email already verified',
+                'already_verified': True
+            }), 200
+        
+        # Verify the email
+        user.email_verified = True
+        user.verification_token = None  # Clear the token after use
+        db.session.commit()
+        
+        logger.info(f"Email verified for user: {user.username}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Email verified successfully! You can now login.',
+            'username': user.username
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Email verification error: {str(e)}")
+        return jsonify({'error': 'Verification failed'}), 500
+
+@app.route("/resend-verification", methods=["POST"])
+def resend_verification():
+    """
+    Resend verification email to user
+    
+    Request body:
+        {
+            "email": "string"
+        }
+    """
+    try:
+        data = request.get_json()
+        
+        if not data or not data.get('email'):
+            return jsonify({'error': 'Email is required'}), 400
+        
+        email = data['email'].strip().lower()
+        
+        # Find user
+        user = User.query.filter_by(email=email).first()
+        
+        if not user:
+            # Don't reveal if email exists or not for security
+            return jsonify({
+                'success': True,
+                'message': 'If an account exists with this email, a verification link has been sent.'
+            }), 200
+        
+        # Check if already verified
+        if user.email_verified:
+            return jsonify({
+                'success': True,
+                'message': 'Email is already verified. You can login now.',
+                'already_verified': True
+            }), 200
+        
+        # Generate new verification token
+        verification_token = user.generate_verification_token()
+        db.session.commit()
+        
+        logger.info(f"Verification email resent to: {email}")
+        
+        # TODO: Send verification email
+        # For now, return the token in response for testing
+        
+        return jsonify({
+            'success': True,
+            'message': 'Verification email sent. Please check your inbox.',
+            'verification_token': verification_token  # Remove this in production
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Resend verification error: {str(e)}")
+        return jsonify({'error': 'Failed to resend verification'}), 500
 
 @app.route("/profile", methods=["GET"])
 @token_required

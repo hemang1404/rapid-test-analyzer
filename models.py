@@ -5,6 +5,7 @@ Handles User accounts and Analysis history
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
+import secrets
 
 db = SQLAlchemy()
 
@@ -16,6 +17,8 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False, index=True)
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
+    email_verified = db.Column(db.Boolean, default=False, nullable=False)
+    verification_token = db.Column(db.String(100), unique=True, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_login = db.Column(db.DateTime)
     
@@ -30,12 +33,18 @@ class User(db.Model):
         """Verify password against hash"""
         return check_password_hash(self.password_hash, password)
     
+    def generate_verification_token(self):
+        """Generate a unique verification token"""
+        self.verification_token = secrets.token_urlsafe(32)
+        return self.verification_token
+    
     def to_dict(self):
         """Convert user to dictionary (without password)"""
         return {
             'id': self.id,
             'username': self.username,
             'email': self.email,
+            'email_verified': self.email_verified,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'last_login': self.last_login.isoformat() if self.last_login else None
         }
