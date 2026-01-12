@@ -56,6 +56,12 @@ Thumbs.db
 .env.test.local
 .env.production.local
 
+# Database
+instance/
+*.db
+*.sqlite
+*.sqlite3
+
 # Upload files (don't commit user uploads)
 uploads/*.png
 uploads/*.jpg
