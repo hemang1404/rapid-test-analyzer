@@ -323,6 +323,134 @@ def get_history(current_user):
         logger.error(f"History fetch error: {str(e)}")
         return jsonify({'error': 'Failed to fetch history'}), 500
 
+@app.route("/update-profile", methods=["POST"])
+@token_required
+def update_profile(current_user):
+    """
+    Update user profile information
+    
+    Request body:
+        {
+            "username": "string" (optional),
+            "email": "string" (optional)
+        }
+    """
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+        
+        # Update username if provided
+        if 'username' in data:
+            username = data['username'].strip()
+            if len(username) < 3:
+                return jsonify({'error': 'Username must be at least 3 characters'}), 400
+            
+            # Check if username is taken by another user
+            existing_user = User.query.filter_by(username=username).first()
+            if existing_user and existing_user.id != current_user.id:
+                return jsonify({'error': 'Username already taken'}), 400
+            
+            current_user.username = username
+        
+        # Update email if provided
+        if 'email' in data:
+            email = data['email'].strip().lower()
+            if '@' not in email:
+                return jsonify({'error': 'Invalid email address'}), 400
+            
+            # Check if email is taken by another user
+            existing_user = User.query.filter_by(email=email).first()
+            if existing_user and existing_user.id != current_user.id:
+                return jsonify({'error': 'Email already registered'}), 400
+            
+            current_user.email = email
+        
+        db.session.commit()
+        logger.info(f"Profile updated for user: {current_user.username}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Profile updated successfully',
+            'user': current_user.to_dict()
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Profile update error: {str(e)}")
+        return jsonify({'error': 'Failed to update profile'}), 500
+
+@app.route("/change-password", methods=["POST"])
+@token_required
+def change_password(current_user):
+    """
+    Change user password
+    
+    Request body:
+        {
+            "current_password": "string",
+            "new_password": "string"
+        }
+    """
+    try:
+        data = request.get_json()
+        
+        if not data or not data.get('current_password') or not data.get('new_password'):
+            return jsonify({'error': 'Current password and new password are required'}), 400
+        
+        current_password = data['current_password']
+        new_password = data['new_password']
+        
+        # Verify current password
+        if not current_user.check_password(current_password):
+            return jsonify({'error': 'Current password is incorrect'}), 401
+        
+        # Validate new password
+        if len(new_password) < 6:
+            return jsonify({'error': 'New password must be at least 6 characters'}), 400
+        
+        # Update password
+        current_user.set_password(new_password)
+        db.session.commit()
+        
+        logger.info(f"Password changed for user: {current_user.username}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Password changed successfully'
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Password change error: {str(e)}")
+        return jsonify({'error': 'Failed to change password'}), 500
+
+@app.route("/delete-account", methods=["DELETE"])
+@token_required
+def delete_account(current_user):
+    """
+    Delete user account and all associated data
+    """
+    try:
+        username = current_user.username
+        
+        # Delete user (cascade will delete all analyses)
+        db.session.delete(current_user)
+        db.session.commit()
+        
+        logger.info(f"Account deleted: {username}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Account deleted successfully'
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Account deletion error: {str(e)}")
+        return jsonify({'error': 'Failed to delete account'}), 500
+
 # ============================================
 # ANALYSIS ROUTES
 # ============================================
