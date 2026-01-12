@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Medical Test Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .input-field {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .input-field:focus {
+            border-color: #667eea;
+            outline: none;
+            background: white;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.2s ease;
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            transition: transform 0.2s ease;
+        }
+        .btn-danger:hover {
+            transform: translateY(-2px);
+        }
+        .success-message {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10b981;
+        }
+        .error-message {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body class="p-6">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="glass rounded-2xl p-6 mb-6 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2">⚙️ Settings</h1>
+                    <p class="opacity-90">Manage your account and preferences</p>
+                </div>
+                <a href="index.html" class="btn-secondary px-6 py-2 rounded-lg text-white font-semibold">
+                    ← Back to Home
+                </a>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div id="successMessage" class="hidden success-message rounded-lg p-4 mb-4 font-semibold">
+            <span id="successText"></span>
+        </div>
+        <div id="errorMessage" class="hidden error-message rounded-lg p-4 mb-4 font-semibold">
+            <span id="errorText"></span>
+        </div>
+
+        <!-- Profile Settings -->
+        <div class="glass rounded-2xl p-6 mb-6 text-white">
+            <h2 class="text-2xl font-bold mb-4">👤 Profile Information</h2>
+            <form id="profileForm" class="space-y-4">
+                <div>
+                    <label class="block mb-2 font-semibold">Username</label>
+                    <input type="text" id="username" class="input-field w-full px-4 py-3 rounded-lg text-gray-800" 
+                           placeholder="Enter username" required minlength="3">
+                    <p class="text-sm opacity-75 mt-1">Minimum 3 characters</p>
+                </div>
+                <div>
+                    <label class="block mb-2 font-semibold">Email</label>
+                    <input type="email" id="email" class="input-field w-full px-4 py-3 rounded-lg text-gray-800" 
+                           placeholder="Enter email" required>
+                </div>
+                <button type="submit" class="btn-primary w-full py-3 rounded-lg text-white font-bold">
+                    <span id="profileBtnText">Update Profile</span>
+                    <span id="profileLoader" class="hidden">Updating...</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Password Change -->
+        <div class="glass rounded-2xl p-6 mb-6 text-white">
+            <h2 class="text-2xl font-bold mb-4">🔒 Change Password</h2>
+            <form id="passwordForm" class="space-y-4">
+                <div>
+                    <label class="block mb-2 font-semibold">Current Password</label>
+                    <input type="password" id="currentPassword" class="input-field w-full px-4 py-3 rounded-lg text-gray-800" 
+                           placeholder="Enter current password" required>
+                </div>
+                <div>
+                    <label class="block mb-2 font-semibold">New Password</label>
+                    <input type="password" id="newPassword" class="input-field w-full px-4 py-3 rounded-lg text-gray-800" 
+                           placeholder="Enter new password" required minlength="6">
+                    <p class="text-sm opacity-75 mt-1">Minimum 6 characters</p>
+                </div>
+                <div>
+                    <label class="block mb-2 font-semibold">Confirm New Password</label>
+                    <input type="password" id="confirmPassword" class="input-field w-full px-4 py-3 rounded-lg text-gray-800" 
+                           placeholder="Confirm new password" required minlength="6">
+                </div>
+                <button type="submit" class="btn-primary w-full py-3 rounded-lg text-white font-bold">
+                    <span id="passwordBtnText">Change Password</span>
+                    <span id="passwordLoader" class="hidden">Changing...</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Account Actions -->
+        <div class="glass rounded-2xl p-6 mb-6 text-white">
+            <h2 class="text-2xl font-bold mb-4">🔐 Account Actions</h2>
+            <div class="space-y-3">
+                <button id="logoutBtn" class="btn-secondary w-full py-3 rounded-lg text-white font-bold">
+                    🚪 Logout
+                </button>
+                <button id="deleteAccountBtn" class="btn-danger w-full py-3 rounded-lg text-white font-bold">
+                    🗑️ Delete Account
+                </button>
+                <p class="text-sm opacity-75 text-center mt-2">
+                    ⚠️ Deleting your account will permanently remove all your data
+                </p>
+            </div>
+        </div>
+
+        <!-- Account Info -->
+        <div class="glass rounded-2xl p-6 text-white">
+            <h2 class="text-2xl font-bold mb-4">📊 Account Information</h2>
+            <div class="space-y-2 opacity-90">
+                <p><strong>User ID:</strong> <span id="userId">-</span></p>
+                <p><strong>Member Since:</strong> <span id="createdAt">-</span></p>
+                <p><strong>Last Login:</strong> <span id="lastLogin">-</span></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        // Check authentication
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+
+        // Load user profile
+        async function loadProfile() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/profile`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        localStorage.removeItem('authToken');
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    throw new Error('Failed to load profile');
+                }
+
+                const data = await response.json();
+                document.getElementById('username').value = data.username;
+                document.getElementById('email').value = data.email;
+                document.getElementById('userId').textContent = data.id;
+                document.getElementById('createdAt').textContent = new Date(data.created_at).toLocaleDateString();
+                document.getElementById('lastLogin').textContent = data.last_login 
+                    ? new Date(data.last_login).toLocaleString() 
+                    : 'Never';
+            } catch (error) {
+                showError('Failed to load profile data');
+            }
+        }
+
+        // Update profile
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+
+            if (username.length < 3) {
+                showError('Username must be at least 3 characters');
+                return;
+            }
+
+            const btnText = document.getElementById('profileBtnText');
+            const loader = document.getElementById('profileLoader');
+            btnText.classList.add('hidden');
+            loader.classList.remove('hidden');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/update-profile`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ username, email })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showSuccess('Profile updated successfully!');
+                    // Update stored username if changed
+                    const tokenData = JSON.parse(atob(token.split('.')[1]));
+                    if (tokenData.username !== username) {
+                        // Token will need refresh on next login
+                        showSuccess('Profile updated! Please login again to see changes everywhere.');
+                    }
+                } else {
+                    showError(data.error || 'Failed to update profile');
+                }
+            } catch (error) {
+                showError('Network error. Please try again.');
+            } finally {
+                btnText.classList.remove('hidden');
+                loader.classList.add('hidden');
+            }
+        });
+
+        // Change password
+        document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (newPassword.length < 6) {
+                showError('New password must be at least 6 characters');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                showError('New passwords do not match');
+                return;
+            }
+
+            const btnText = document.getElementById('passwordBtnText');
+            const loader = document.getElementById('passwordLoader');
+            btnText.classList.add('hidden');
+            loader.classList.remove('hidden');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/change-password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ 
+                        current_password: currentPassword,
+                        new_password: newPassword 
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showSuccess('Password changed successfully!');
+                    document.getElementById('passwordForm').reset();
+                } else {
+                    showError(data.error || 'Failed to change password');
+                }
+            } catch (error) {
+                showError('Network error. Please try again.');
+            } finally {
+                btnText.classList.remove('hidden');
+                loader.classList.add('hidden');
+            }
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('authToken');
+                window.location.href = 'login.html';
+            }
+        });
+
+        // Delete account
+        document.getElementById('deleteAccountBtn').addEventListener('click', async () => {
+            const confirmed = confirm(
+                '⚠️ WARNING: This will permanently delete your account and all your data.\n\n' +
+                'This action cannot be undone. Are you absolutely sure?'
+            );
+
+            if (!confirmed) return;
+
+            const doubleCheck = prompt('Type "DELETE" to confirm account deletion:');
+            if (doubleCheck !== 'DELETE') {
+                showError('Account deletion cancelled');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/delete-account`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    alert('Your account has been deleted successfully');
+                    localStorage.removeItem('authToken');
+                    window.location.href = 'register.html';
+                } else {
+                    const data = await response.json();
+                    showError(data.error || 'Failed to delete account');
+                }
+            } catch (error) {
+                showError('Network error. Please try again.');
+            }
+        });
+
+        // Helper functions
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            const errorDiv = document.getElementById('errorMessage');
+            document.getElementById('successText').textContent = message;
+            successDiv.classList.remove('hidden');
+            errorDiv.classList.add('hidden');
+            setTimeout(() => successDiv.classList.add('hidden'), 5000);
+        }
+
+        function showError(message) {
+            const successDiv = document.getElementById('successMessage');
+            const errorDiv = document.getElementById('errorMessage');
+            document.getElementById('errorText').textContent = message;
+            errorDiv.classList.remove('hidden');
+            successDiv.classList.add('hidden');
+            setTimeout(() => errorDiv.classList.add('hidden'), 5000);
+        }
+
+        // Load profile on page load
+        loadProfile();
+    </script>
+</body>
+</html>
