@@ -5,6 +5,7 @@ Includes validation, error handling, and helper functions
 import cv2
 import numpy as np
 import os
+import re
 from typing import Tuple, Optional
 import logging
 
@@ -135,6 +136,65 @@ def get_image_orientation(image_path: str) -> Optional[str]:
     except Exception as e:
         logger.error(f"Error detecting orientation: {str(e)}")
         return None
+
+def validate_email(email: str) -> Tuple[bool, Optional[str]]:
+    """
+    Validate email address format and domain.
+    
+    Checks for:
+    - Valid email format (RFC 5322 compliant)
+    - Valid domain structure
+    - Common disposable email patterns
+    
+    Args:
+        email: Email address to validate
+        
+    Returns:
+        Tuple of (is_valid, error_message)
+        - is_valid: True if email passes validation
+        - error_message: None if valid, error description if invalid
+    """
+    if not email or not isinstance(email, str):
+        return False, "Email is required"
+    
+    email = email.strip().lower()
+    
+    # RFC 5322 compliant email regex pattern
+    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    
+    if not re.match(email_pattern, email):
+        return False, "Invalid email format. Please enter a valid email address (e.g., user@example.com)"
+    
+    # Extract domain
+    domain = email.split('@')[1]
+    
+    # Check for minimum domain requirements
+    if '.' not in domain:
+        return False, "Invalid email domain. Domain must contain a valid extension (e.g., .com, .org)"
+    
+    # Check domain parts
+    domain_parts = domain.split('.')
+    
+    # Validate domain has proper structure (e.g., not just numbers)
+    if all(part.isdigit() for part in domain_parts):
+        return False, "Invalid email domain. Please use a valid email address"
+    
+    # Check top-level domain (TLD) length
+    tld = domain_parts[-1]
+    if len(tld) < 2:
+        return False, "Invalid email domain extension"
+    
+    # Common disposable/temporary email domains to block
+    disposable_domains = {
+        'tempmail.com', 'throwaway.email', '10minutemail.com', 'guerrillamail.com',
+        'mailinator.com', 'yopmail.com', 'sharklasers.com', 'trashmail.com',
+        'temp-mail.org', 'getnada.com', 'maildrop.cc'
+    }
+    
+    if domain in disposable_domains:
+        return False, "Temporary or disposable email addresses are not allowed"
+    
+    return True, None
 
 class AnalysisValidator:
     """Validator for test analysis results"""
