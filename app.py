@@ -6,7 +6,7 @@ import logging
 import json
 from datetime import datetime
 from config import get_config
-from utils import validate_image_quality, validate_file_extension, safe_file_cleanup, AnalysisValidator
+from utils import validate_image_quality, validate_file_extension, safe_file_cleanup, AnalysisValidator, validate_email
 from models import db, User, Analysis
 from auth import generate_token, token_required, optional_token
 
@@ -209,8 +209,10 @@ def register():
         if len(password) < 6:
             return jsonify({'error': 'Password must be at least 6 characters'}), 400
         
-        if '@' not in email:
-            return jsonify({'error': 'Invalid email address'}), 400
+        # Validate email format and domain
+        is_valid_email, email_error = validate_email(email)
+        if not is_valid_email:
+            return jsonify({'error': email_error}), 400
         
         # Check if user already exists
         if User.query.filter_by(email=email).first():
