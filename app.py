@@ -229,7 +229,10 @@ def register():
         # Create new user
         user = User(username=username, email=email)
         user.set_password(password)
-        verification_token = user.generate_verification_token()
+        
+        # Auto-verify users since email sending is not implemented yet
+        user.email_verified = True
+        # verification_token = user.generate_verification_token()  # Disabled for now
         
         db.session.add(user)
         db.session.commit()
@@ -237,14 +240,12 @@ def register():
         logger.info(f"New user registered: {username}")
         
         # TODO: Send verification email with token
-        # For now, we'll include the token in the response for testing
-        # In production, this should be sent via email
+        # For now, users are auto-verified since email sending is not implemented
         
         return jsonify({
             'success': True,
-            'message': 'Registration successful. Please verify your email to login.',
-            'user': user.to_dict(),
-            'verification_token': verification_token  # Remove this in production
+            'message': 'Registration successful. You can now login.',
+            'user': user.to_dict()
         }), 201
         
     except Exception as e:
@@ -278,13 +279,13 @@ def login():
         if not user or not user.check_password(password):
             return jsonify({'error': 'Invalid email or password'}), 401
         
-        # Check if email is verified
-        if not user.email_verified:
-            return jsonify({
-                'error': 'Email not verified',
-                'message': 'Please verify your email before logging in. Check your inbox for the verification link.',
-                'email_verified': False
-            }), 403
+        # Email verification check disabled for now (email sending not implemented)
+        # if not user.email_verified:
+        #     return jsonify({
+        #         'error': 'Email not verified',
+        #         'message': 'Please verify your email before logging in. Check your inbox for the verification link.',
+        #         'email_verified': False
+        #     }), 403
         
         # Update last login
         user.last_login = datetime.utcnow()
