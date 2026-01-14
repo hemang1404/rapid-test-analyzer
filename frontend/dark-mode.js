@@ -114,6 +114,7 @@ const darkModeManager = new DarkModeManager();
 document.addEventListener('DOMContentLoaded', () => {
     // Try to find a suitable container for the toggle button
     const possibleContainers = [
+        document.querySelector('.fixed.top-4.right-4'),  // Fixed top-right div (most pages)
         document.querySelector('header .flex.items-center.gap-4'),
         document.querySelector('header .container > div'),
         document.querySelector('.no-print .flex.justify-center.gap-4'),
